@@ -1,0 +1,28 @@
+.left-content {
+  background-color: black;
+  width: 50%;
+}
+
+.signup-form {
+  width: 50%;
+  height: 100%;
+  padding: 3%;
+}
+
+.upload-data {
+  border: dotted 1px gray;
+  border-radius: 10px;
+  padding: 2%;
+}
+
+#submit-btn {
+  background-color: #16161C;
+  padding: 2%;
+  border-radius: 20px;
+}
+
+#submit-btn:hover {
+  background-color: #FF8263;
+  transition-duration: 0.5s;
+  cursor: pointer;
+}

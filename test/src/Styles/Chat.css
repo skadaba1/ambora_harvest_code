@@ -1,0 +1,88 @@
+.blue {
+  background-color: lightblue;
+}
+
+.gray {
+  background-color: lightgray;
+}
+
+.chat-role {
+  max-width: fit-content;
+}
+
+.show-documents {
+  max-width: fit-content;
+  font-size: small;
+  padding: 4px 6px;
+  transition: 0.2s;
+}
+
+.show-documents:hover {
+  background-color: rgb(172, 172, 172);
+}
+
+.pre-wrap {
+  white-space: pre-wrap;
+}
+
+.show-documents {
+  background-color: lightgray;
+}
+
+.show-documents.hide-sources {
+  background-color: darkgray;
+}
+
+.chat-container ul,
+.chat-container ol {
+  margin-left: 20px; /* Adjust the left margin as needed */
+  padding-left: 20px; /* Adjust the padding as needed */
+  list-style-position: inside; /* Ensures bullets/numbers are inside the padding */
+  margin-top: -20px; /* Remove top margin */
+  margin-bottom: 0px; /* Remove bottom margin */
+}
+
+.chat-container li {
+  margin-bottom: -20px; /* Remove the bottom margin for no additional spacing */
+  padding: 0; /* Remove any padding */
+  border: none; /* Remove any borders */
+  list-style-type: disc; /* Ensures bullet points show for unordered lists */
+}
+
+/* Specifically style ordered lists to ensure numbers show */
+.chat-container ol li {
+  list-style-type: decimal; /* Ensures numbers show for ordered lists */
+}
+
+.typing {
+  display: flex;
+  align-items: center;
+}
+
+.typing::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: gray;
+  animation: typing 1.5s steps(1) infinite;
+  margin-left: 2px;
+}
+
+@keyframes typing {
+  0%, 20% {
+    box-shadow: 0 0 0 gray;
+  }
+  40% {
+    box-shadow: 0 0 0 gray, 20px 0 0 gray;
+  }
+  60% {
+    box-shadow: 0 0 0 gray, 20px 0 0 gray, 40px 0 0 gray;
+  }
+  80%, 100% {
+    box-shadow: 0 0 0 gray, 20px 0 0 gray;
+  }
+}
+
+

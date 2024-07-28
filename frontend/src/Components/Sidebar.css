@@ -1,0 +1,10 @@
+.side-btn {
+  padding: 15px;
+  cursor: pointer;
+  transition: 0.5s
+}
+
+.side-btn:hover {
+  background-color: rgb(221, 221, 221);
+  border-radius: 5px;
+}

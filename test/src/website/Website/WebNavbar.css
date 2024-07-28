@@ -1,0 +1,131 @@
+.web-header {
+    position: fixed;
+    height: 85px;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    transition: .3s ease-in;
+    overflow: hidden;
+}
+
+@font-face {
+    font-family: 'PoppinsFont';
+    src: url('./../fonts/Poppins-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.web-header-bg{
+    background-color: rgba(0,0,0,.9);
+}
+
+.web-header .web-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: auto;
+    height: 100%;
+    padding: 0 2%;
+}
+
+.web-logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.web-logo-text {
+    margin-left: 10px; /* Adjust the margin as needed */
+    color: white;
+    font-size: 1.5rem; /* Adjust the font size as needed */
+}
+
+.web-header .nav-menu a {
+    color: white;
+    border-radius: 25px;
+    transition:0.2s;
+    display:inline-block;
+    height:40px;
+    line-height:40px;
+    overflow:hidden;
+    position:relative;
+    text-align:center;
+}
+
+.label-down {
+    margin: 0px 20px;
+    height: 100%;
+    position: relative;
+    top: -100%;
+    transition: 0.3s;
+}
+  
+.web-header .nav-item a:hover .label-down {
+    top: 0%;
+}
+
+.web-header .web-navbar img {
+    width: 250px;
+    height: auto;
+}
+
+.web-header .nav-menu {
+    display: flex;
+}
+
+.web-header .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    font-weight: 500;
+    border: none;
+}
+
+.web-header .nav-item a:hover {
+    background-color: white;
+    color: black;
+}
+
+.web-hamburger {
+    display: none;
+}
+
+@media screen and (max-width:940px) {
+    .web-header {
+        max-width: 100%;
+        background-color: rgba(0,0,0,.9);
+    }
+
+    .web-header .web-navbar {
+        max-width: 100%;
+    }
+
+    .web-hamburger {
+        display: block;
+    }
+
+    .nav-menu {
+        position: fixed;
+        left: -100%;
+        top: 90px;
+        flex-direction: column;
+        background-color: rgba(0,0,0,.8);
+        width: 100%;
+        height: 90vh;
+        z-index: 999;
+        text-align: center;
+        transition: .3s;
+    }
+
+    .nav-menu.active {
+        left: 0;
+    }
+
+    .nav-item {
+        margin: 1.5rem 0;
+    }
+
+    .web-header .web-navbar img {
+        width: 150px;
+    }
+}

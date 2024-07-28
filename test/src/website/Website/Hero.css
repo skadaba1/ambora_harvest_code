@@ -1,0 +1,127 @@
+.hero {
+    background-color: black; /* Change to white background color */
+    width: 100%;
+    position: relative;
+    padding-top: 85px;
+}
+
+.hero .content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 75%;
+    margin: auto;
+}
+
+.hero .signup {
+    height: 100%;
+}
+
+.hero .signup-form {
+    height: 80%;
+    width: 40%;
+    padding: 2%;
+    border-radius: 10%;
+    margin-left: 5%;
+    margin-top: 5%;
+    background-color: white;
+}
+
+.hero .signup-description {
+    width: 50%
+}
+
+.signup-form .box {
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.hero .content p:nth-child(2) {
+    font-size: 3rem;
+    color: white;
+    font-weight: bold;
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    text-align: center; /* Center text within the container */
+    margin-top: 1%;
+}
+
+.hero .content p:nth-child(3) {
+    font-size: 1.25rem;
+    color: white;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    text-align: center; /* Center text within the container */
+}
+
+.hero p {
+    font-size: 1.25rem;
+    color: white;
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    text-align: center; /* Center text within the container */
+}
+
+.buttons {
+    display: flex;
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    text-align: center; /* Center text within the container */
+    margin-top: 10%;
+}
+
+.backedby {
+    margin-top: 2%;
+    display: flex;
+    color: white;
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    text-align: center; /* Center text within the container */
+}
+
+/* Deleted some mobile media stuff */
+
+.container {
+    width: 100%;
+    text-align: center;
+}
+  
+.button2 {
+    display:inline-block;
+    height:60px;
+    width: 300px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height:60px;
+    overflow:hidden;
+    position:relative;
+    text-align:center;
+    color: white;
+    border-radius:25px;
+    transition:0.2s;
+    border-color: white;
+    border-width: 1px;
+}
+  
+.button2:hover {
+    background-color: white;
+    color: black;
+    border: 1px solid var(--secondary-dark);
+}
+
+.label-up {
+    display:block;
+    margin:0px 30px;
+    height:100%;
+    position:relative;
+    top:0%;
+    transition:0.3s;
+}
+  
+.button2:hover .label-up {
+    top:-100%;
+}

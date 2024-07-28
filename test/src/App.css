@@ -1,0 +1,11 @@
+.response-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.response-card {
+  height: 200px; /* Set a fixed height for the card */
+  overflow: auto; /* Add overflow for content longer than the fixed height */
+}

@@ -1,0 +1,21 @@
+.upload-btn {
+  padding: 10px 20px;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  transition: 0.5s;
+}
+
+.upload-file:hover {
+  background-color: #8dbbc9 !important;
+}
+
+.upload-url:hover {
+  background-color: #aac9bb !important;
+}
+
+.submit-url:hover {
+  background-color: #aac9bb !important;
+}

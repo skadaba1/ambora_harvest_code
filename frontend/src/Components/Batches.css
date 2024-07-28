@@ -1,0 +1,41 @@
+.add-batch-btn {
+  background-color: white;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 5px;
+  padding-right: 10px;
+  padding-left: 10px;
+  cursor: pointer;
+  transition: 0.5s
+}
+
+.add-batch-btn:hover {
+  background-color: lightgray;
+}
+
+.back-btn {
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  color: gray;
+}
+
+.batch-submit-btn {
+  background-color: black;
+  border: none;
+  color: white;
+  font-weight: bold;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: 0.5s;
+  border: 1px solid black;
+}
+
+.batch-submit-btn:hover {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
