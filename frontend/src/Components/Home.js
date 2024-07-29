@@ -2,6 +2,7 @@ import './Home.css';
 import Sidebar from './Sidebar';
 import Simulation from './Simulation';
 import Batches from './Batches';
+import Schedule from './Schedule';
 import { useState } from 'react';
 
 function Home() {
@@ -12,8 +13,10 @@ function Home() {
       <Sidebar setAppView={setAppView} />
       {appView === 'simulation' ? (
         <Simulation />
-      ) : (
+      ) : appView === 'batches' ? (
         <Batches />
+      ) : (
+        <Schedule />
       )}
     </div>
   );
