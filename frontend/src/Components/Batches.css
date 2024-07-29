@@ -39,3 +39,13 @@
   color: black;
   border: 1px solid black;
 }
+
+.batches-row {
+  background: #f5f5f5;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.batches-row:hover {
+  background: lightgray;
+}

@@ -1,23 +1,60 @@
 import './Batches.css'
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-
-const batches = [
-  {
-    lotNumber: 1,
-    cellCount: 15,
-    predHarvest: '8/2/2024'
-  },
-  {
-    lotNumber: 2,
-    cellCount: 15,
-    predHarvest: '8/2/2024'
-  },
-]
+import { REACT_APP_API_URL } from "../consts";
 
 const Batches = () => {
   const [batchesView, setBatchesView] = useState('batches');
+  const [batches, setBatches] = useState([]);
+
+  useEffect(() => {
+    const getBatches = async () => {
+      try {
+        // const accessToken = localStorage.getItem('accessToken');      
+        const response = await fetch(REACT_APP_API_URL + 'api/batches/', {
+          method: 'GET',  // Ensure this matches the view method
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (response.status === 200) {
+          const result = await response.json();
+          setBatches(result);
+        } else {
+          const errorData = await response.json();
+          console.error('Error uploading URL:', errorData.error);
+        }
+      } catch (error) {
+        console.error('Error uploading URL:', error);
+      }
+    }
+    
+    getBatches();
+  }, [])
+
+  const onAddBatchClick = async () => {
+    try {     
+      const response = await fetch(REACT_APP_API_URL + 'api/add-batch/', {
+        method: 'POST',  // Ensure this matches the view method
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 200) {
+        const result = await response.json();
+        setBatches(result);
+      } else {
+        const errorData = await response.json();
+        console.error('Error uploading URL:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Error uploading URL:', error);
+    }
+    setBatchesView('batches');
+  }
 
   return (
     <>
@@ -36,14 +73,14 @@ const Batches = () => {
           <p style={{ margin: '0px' }}>Predicted Harvest</p>
         </div>
         {batches.map((item, index) => (
-          <div style={{ display: 'flex', width: '80%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px', background: '#f5f5f5' }}>
+          <div className='batches-row' onClick={() => setBatchesView('singleBatch')} style={{ display: 'flex', width: '80%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}>
             <p style={{ margin: '0px' }}>{item.lotNumber}</p>
             <p style={{ margin: '0px' }}>{item.cellCount}</p>
             <p style={{ margin: '0px' }}>{item.predHarvest}</p>
           </div>
         ))}
       </div>
-    ) : (
+    ) : batchesView === 'addBatch' ? (
       <div style={{ paddingLeft: '3%', paddingTop: '3%' }}>
         <div className='back-btn' style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '20px' }}>
           <FontAwesomeIcon icon={faArrowLeft} /> 
@@ -61,7 +98,24 @@ const Batches = () => {
           <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
           <input className='setting-input' type="number" />
         </div>
-        <button className='batch-submit-btn' style={{ marginTop: '30px' }}>Submit</button>
+        <button className='batch-submit-btn' onClick={() => onAddBatchClick()} style={{ marginTop: '30px' }}>Submit</button>
+      </div>
+    ) : (
+      <div style={{ paddingLeft: '3%', paddingTop: '3%' }}>
+        <div className='back-btn' style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '20px' }}>
+          <FontAwesomeIcon icon={faArrowLeft} /> 
+          <p onClick={() => setBatchesView('batches')} style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Back</p>
+        </div>
+        <h1> Batch 1 </h1>
+        <div style={{ marginTop: '30px' }}>
+          <label style={{ fontWeight: 'bold' }}>Measurement Date</label>
+          <input className='setting-input' type="date" />
+        </div>
+        <div style={{ marginTop: '30px' }}>
+          <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
+          <input className='setting-input' type="number" />
+        </div>
+        <button className='batch-submit-btn' style={{ marginTop: '30px' }}>Add Measurement</button>
       </div>
     )}
     </>
