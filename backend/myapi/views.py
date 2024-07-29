@@ -648,8 +648,32 @@ class ChatSessionFetchEditorView(APIView):
         session = get_object_or_404(ChatSession, pk=pk)
         return Response({'content':session.editor_backup})
 
+batches = [
+  {
+    'lotNumber': 1,
+    'cellCount': 15,
+    'predHarvest': '8/2/2024'
+  },
+  {
+    'lotNumber': 2,
+    'cellCount': 15,
+    'predHarvest': '8/2/2024'
+  },
+]
+
 class PredHarvest(APIView):
     permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         print("TEST", request.user)
         return Response(12, status=status.HTTP_201_CREATED)
+
+class Batches(ListAPIView):
+    permission_classes = [AllowAny]
+    def get_batches(self):
+        print("TEST", self.request.user)
+        queryset = UploadedFile.objects.filter(user = self.request.user).all()
+        # Debugging: Print each item (not recommended in production)
+        for item in queryset:
+            print(item)
+        return queryset
+    serializer_class = UploadedFileSerializer

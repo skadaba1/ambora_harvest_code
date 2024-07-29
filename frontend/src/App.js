@@ -1,21 +1,40 @@
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import Sidebar from './Components/Sidebar';
-import Simulation from './Components/Simulation';
-import Batches from './Components/Batches';
-import { useState } from 'react';
+// import posthog from './posthog';
+import Home from './Components/Home.js'
+import Website from './Website/Website.js';
+import Login from './Website/Website/Login.js';
+import JoinWaitlist from './Website/Website/JoinWaitlist.js';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import MiniProjects from './Website/Website/MiniProjects.js';
+import { createTheme, ThemeProvider } from '@mui/material';
+
+// const customTheme = createTheme({
+//   typography: {
+//     fontFamily: 'PoppinsFont, sans-serif'
+//   },
+// });
 
 function App() {
-  const [appView, setAppView] = useState('simulation');
+  // useEffect(() => {
+  //   // Automatically start session recording when the component mounts
+  //   posthog.capture('$pageview');
+  // }, []);
+
+  const basePath = '/home';
 
   return (
-    <div className="App" style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar setAppView={setAppView} />
-      {appView === 'simulation' ? (
-        <Simulation />
-      ) : (
-        <Batches />
-      )}
-    </div>
+    // <ThemeProvider theme={customTheme}>
+      <Router>
+        <Routes>
+          <Route path={'/'} element={<Home />} />
+          {/* <Route path={'/login'} element={<Login />} />
+          <Route path={'/join-waitlist'} element={<JoinWaitlist />} />
+          <Route path={'/amborasocial'} element={<MiniProjects />} />
+          <Route path={basePath} element={<Home />} /> */}
+        </Routes>
+      </Router>
+    // </ThemeProvider>
   );
 }
 
