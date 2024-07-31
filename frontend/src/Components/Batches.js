@@ -195,7 +195,7 @@ const Batches = () => {
         </div>
         <div style={{ marginTop: '30px' }}>
           <label style={{ fontWeight: 'bold' }}>Batch Start Date</label>
-          <input className='setting-input' type="date" ref={batchStartDateRef}/>
+          <input className='setting-input' type="datetime-local" ref={batchStartDateRef}/>
         </div>
         <div style={{ marginTop: '30px' }}>
           <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
@@ -224,7 +224,7 @@ const Batches = () => {
             <h1 style={{margin: '0px' }}> Batch {batchesView.lotNumber} </h1>
             <div style={{ marginTop: '30px' }}>
               <label style={{ fontWeight: 'bold' }}>Measurement Date</label>
-              <input className='setting-input' type="date" ref={newMeasurementDateRef}/>
+              <input className='setting-input' type="datetime-local" ref={newMeasurementDateRef}/>
             </div>
             <div style={{ marginTop: '30px' }}>
               <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
