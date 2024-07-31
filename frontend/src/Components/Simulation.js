@@ -11,7 +11,7 @@ const batchScheduleDay = [1, 2, 1, 0, 1, 0, 0, 0, 1, 0, 2]
 const Simulation = () => {
   const [numberOfDays, setNumberOfDays] = useState(30);
   const [scheduleData, setScheduleData] = useState({});
-  const [dayToNumCTSAvailable, setDayToNumCTSAvailable] = useState({0 : 5, 1 : 5, 2 : 11, 3 : 11, 4 : 11, 5 : 6, 6 : 6})
+  const [dayToNumCTSAvailable, setDayToNumCTSAvailable] = useState({0: 5, 1: 5, 2: 11, 3: 11, 4: 11, 5: 6, 6: 6})
   const [chartData, setChartData] = useState([]);
   const numberOfDaysRef = useRef(null);
   

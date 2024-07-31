@@ -49,3 +49,15 @@
 .batches-row:hover {
   background: lightgray;
 }
+
+.delete-batch-btn {
+  color: red;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s
+}
+
+.delete-batch-btn:hover {
+  /* color: rgb(189, 0, 0); */
+  color: darkred;
+}
