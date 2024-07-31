@@ -58,12 +58,13 @@ class HoeffdingStateEstimator():
             out[model_name] = value
         return out
     
-    def sim_growth(self, current_state, forward_time_inc, days_forward): # forward_time_inc in hours
+    def sim_growth(self, current_state, forward_time_inc, days_forward, starting_date): # forward_time_inc in hours
         increments = int(days_forward * 24 / forward_time_inc)
         states_dict = defaultdict(list)
         for i in range(increments):
+            current_date = starting_date + datetime.timedelta(days=i*forward_time_inc/24)
             next_state = self.forecast_next_state(current_state, forward_time_inc)
-            states_dict[f'increment_{i+1}'] = next_state
+            states_dict[current_date] = next_state
             current_state = next_state
         return states_dict
     
@@ -79,7 +80,7 @@ def sim_growth_for_batch(batch):
         } 
     days_forward = 16 - (last_measurements.measurement_date - batch.batch_start_date).days
     forward_time_inc = 24 # predict 24 hours advance at a time
-    states_dict = state_estimator.sim_growth(current_state, forward_time_inc, days_forward)
+    states_dict = state_estimator.sim_growth(current_state, forward_time_inc, days_forward, last_measurements.measurement_date)
     return states_dict
 
 @api_view(['GET'])
