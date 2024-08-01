@@ -3,16 +3,87 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { REACT_APP_API_URL } from "../consts";
+import { Line } from 'react-chartjs-2';
+import { addDays, format, parseISO } from 'date-fns';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  TimeScale
+} from 'chart.js';
+import 'chartjs-adapter-date-fns'; // Import the date adapter
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
+
+const options = {
+  scales: {
+    x: {
+      type: 'time',
+      time: {
+        unit: 'day',
+        tooltipFormat: 'Pp', // Date and time format for tooltips
+        displayFormats: {
+          day: 'yyyy-MM-dd',
+        },
+      },
+      title: {
+        display: true,
+        text: 'Date',
+      },
+    },
+    y: {
+      beginAtZero: true,
+      title: {
+        display: true,
+        text: 'Value',
+      },
+    },
+  },
+};
 
 const Batches = () => {
   const [batchesView, setBatchesView] = useState('batches');
   const [batches, setBatches] = useState([]);
   const [measurements, setMeasurements] = useState([]);
+  const [chartData, setChartData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Measurement Value 1',
+        fill: false,
+        lineTension: 0.1,
+        backgroundColor: 'rgba(75,192,192,0.4)',
+        borderColor: 'rgba(75,192,192,1)',
+        data: [],
+      },
+      {
+        label: 'Measurement Value 2',
+        fill: false,
+        lineTension: 0.1,
+        backgroundColor: 'rgba(153,102,255,0.4)',
+        borderColor: 'rgba(153,102,255,1)',
+        data: [],
+      },
+      {
+        label: 'Measurement Value 3',
+        fill: false,
+        lineTension: 0.1,
+        backgroundColor: 'rgba(255,159,64,0.4)',
+        borderColor: 'rgba(255,159,64,1)',
+        data: [],
+      },
+    ],
+  });
   const lotNumberRef = useRef(null);
   const batchStartDateRef = useRef(null);
-  const totalViableCellsRef = useRef(null);
-  const viableCellDensityRef = useRef(null);
-  const cellDiameterRef = useRef(null);
+  // const totalViableCellsRef = useRef(null);
+  // const viableCellDensityRef = useRef(null);
+  // const cellDiameterRef = useRef(null);
   const newMeasurementDateRef = useRef(null);
   const newTotalViableCellsRef = useRef(null);
   const newViableCellDensityRef = useRef(null);
@@ -55,9 +126,9 @@ const Batches = () => {
         body: JSON.stringify({
           lotNumber: lotNumberRef.current.value,
           batchStartDate: batchStartDateRef.current.value,
-          totalViableCells: totalViableCellsRef.current.value,
-          viableCellDensity: viableCellDensityRef.current.value,
-          cellDiameter: cellDiameterRef.current.value
+          // totalViableCells: totalViableCellsRef.current.value,
+          // viableCellDensity: viableCellDensityRef.current.value,
+          // cellDiameter: cellDiameterRef.current.value
         }),
       });
 
@@ -92,6 +163,64 @@ const Batches = () => {
 
       if (response.status === 200) {
         const result = await response.json();
+        console.log(result);
+        console.log(measurements);
+
+        let labels = [];
+        let cd_data = [];
+        let tvc_data = [];
+        let vcd_data = [];
+        measurements.forEach(measurement => {
+          cd_data.push(measurement.cell_diameter);
+          tvc_data.push(measurement.total_viable_cells);
+          vcd_data.push(measurement.viable_cell_density);
+          labels.push(format(parseISO(measurement.measurement_date), 'yyyy-MM-dd'));
+        })
+        cd_data.push(newCellDiameterRef.current.value);
+        tvc_data.push(newTotalViableCellsRef.current.value);
+        vcd_data.push(newViableCellDensityRef.current.value);
+        labels.push(format(parseISO(newMeasurementDateRef.current.value), 'yyyy-MM-dd'))
+        Object.keys(result.out).forEach(key => {
+          cd_data.push(result.out[key].cell_diameter);
+          tvc_data.push(result.out[key].total_viable_cells);
+          vcd_data.push(result.out[key].viable_cell_density);
+          labels.push(format(parseISO(key), 'yyyy-MM-dd'));
+        });
+
+        console.log(labels);
+        console.log(cd_data);
+        console.log(tvc_data);
+        console.log(vcd_data);
+        setChartData({
+          labels: labels,
+          datasets: [
+            {
+              label: 'Cell Diameter',
+              fill: false,
+              lineTension: 0.1,
+              backgroundColor: 'rgba(75,192,192,0.4)',
+              borderColor: 'rgba(75,192,192,1)',
+              data: cd_data,
+            },
+            {
+              label: 'Total Viable Cells',
+              fill: false,
+              lineTension: 0.1,
+              backgroundColor: 'rgba(153,102,255,0.4)',
+              borderColor: 'rgba(153,102,255,1)',
+              data: tvc_data,
+            },
+            {
+              label: 'Viable Cell Density',
+              fill: false,
+              lineTension: 0.1,
+              backgroundColor: 'rgba(255,159,64,0.4)',
+              borderColor: 'rgba(255,159,64,1)',
+              data: vcd_data,
+            },
+          ],
+        });
+
         getMeasurements();
       } else {
         const errorData = await response.json();
@@ -197,7 +326,7 @@ const Batches = () => {
           <label style={{ fontWeight: 'bold' }}>Batch Start Date</label>
           <input className='setting-input' type="datetime-local" ref={batchStartDateRef}/>
         </div>
-        <div style={{ marginTop: '30px' }}>
+        {/* <div style={{ marginTop: '30px' }}>
           <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
           <input className='setting-input' type="number" ref={totalViableCellsRef}/>
         </div>
@@ -208,7 +337,7 @@ const Batches = () => {
         <div style={{ marginTop: '30px' }}>
           <label style={{ fontWeight: 'bold' }}>Cell Diameter</label>
           <input className='setting-input' type="number" ref={cellDiameterRef}/>
-        </div>
+        </div> */}
         <button className='batch-submit-btn' onClick={() => onAddBatchClick()} style={{ marginTop: '30px' }}>Submit</button>
       </div>
     ) : (
@@ -245,6 +374,7 @@ const Batches = () => {
           </div>
           <div style={{ paddingLeft: '20px', width: '70%' }}>
             <h1 style={{margin: '0px' }}>Measurements</h1>
+            <Line data={chartData} options={options} />
             <div style={{ display: 'flex', width: '80%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
               <p style={{ margin: '0px', width: '100px', fontWeight: 'bold' }}>Date</p>
               <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>TVC</p>

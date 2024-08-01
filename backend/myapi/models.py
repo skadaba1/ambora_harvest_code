@@ -1,35 +1,22 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
-
-class UploadedFile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files', default=-1)
-    filename = models.CharField(max_length=255)
-    file = models.FileField(upload_to='uploads/')
-    file_organization = models.CharField(max_length=255, default='reference')
-    upload_date = models.DateTimeField(auto_now_add=True)
+# Create your models here.
+class Batch(models.Model):
+    lot_number = models.CharField(max_length=100)
+    batch_start_date = models.DateTimeField(null=True, blank=True)
+    total_viable_cells = models.FloatField(null=True, blank=True)
+    # viable_cell_density = models.FloatField(null=True, blank=True)
+    # cell_diameter = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return self.filename
+        return self.lot_number
     
-# Model to store chat sessions
-class ChatSession(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_sessions', default=-1)
-    name = models.CharField(max_length=255, default="New Chat", blank=True)
-    last_updated = models.DateTimeField(auto_now_add=True)
-    editor_backup = models.TextField(default="", blank=True, null=True)
+class Measurement(models.Model):
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+    measurement_date = models.DateTimeField(null=True, blank=True)
+    total_viable_cells = models.FloatField(null=True, blank=True)
+    viable_cell_density = models.FloatField(null=True, blank=True)
+    cell_diameter = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return self.name
-    
-# Model to store chat history
-class ChatHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='your_models', default=-1)
-    user_role = models.CharField(max_length=255, default='user')
-    message = models.TextField()
-    documents = models.JSONField(default = list)
-    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='chats')
-
-    def __str__(self):
-        return self.user_role
+        return self.batch
