@@ -8,9 +8,20 @@ from collections import defaultdict
 from skmultiflow.trees import HoeffdingTreeRegressor
 from .models import Batch, Measurement
 from .serializers import BatchSerializer, MeasurementSerializer
-from datetime import datetime
+from datetime import datetime, timedelta
 
 date_format = "%Y-%m-%dT%H:%M"  # For 'datetime-local' input type
+
+def convert_datetime_string(date_string):
+    actual_format = '%Y-%m-%d %H:%M:%S%z'
+    try:
+        dt = datetime.strptime(date_string, actual_format)
+    except ValueError as e:
+        print(f"Error parsing date string: {e}")
+        return None
+    desired_format = '%Y-%m-%dT%H:%M'
+    formatted_string = dt.strftime(desired_format)
+    return formatted_string
 
 class HoeffdingStateEstimator():
     def __init__(self, input_dim, state_properties=['total_viable_cells', 'viable_cell_density', 'cell_diameter']):
@@ -21,6 +32,19 @@ class HoeffdingStateEstimator():
         self.obs_df = pd.DataFrame(columns=columns)
         self.state_properties = state_properties
 
+        self.log_observations()
+
+    def log_observations(self):
+        all_measurements = Measurement.objects.all()
+        for measurement in all_measurements:
+            self.make_observation_and_update({
+                'lot_number': measurement.batch.lot_number,
+                'measurement_date': convert_datetime_string(str(measurement.measurement_date)),
+                'total_viable_cells': measurement.total_viable_cells,
+                'viable_cell_density': measurement.viable_cell_density,
+                'cell_diameter': measurement.cell_diameter
+            })
+        pass
             
     def make_observation(self, obs):
         # Convert dictionary to DataFrame and concatenate
@@ -63,32 +87,32 @@ class HoeffdingStateEstimator():
         increments = int(days_forward * 24 / forward_time_inc)
         states_dict = defaultdict(list)
         for i in range(increments):
-            current_date = starting_date + datetime.timedelta(days=i*forward_time_inc/24)
+            current_date = starting_date + timedelta(days=i*forward_time_inc/24)
             next_state = self.forecast_next_state(current_state, forward_time_inc)
             states_dict[current_date] = next_state
             current_state = next_state
         return states_dict
 
-    def eval_on_observations(self, obs):
+    def eval_on_observations(self):
         # assume obs is list of dicts of prediction vs
         predictions = defaultdict(list)
         actual = defaultdict(list)
         timestamps = []
         for i in range(len(self.obs_df) - 1):
+            measurement_date = self.obs_df.iloc[i]['measurement_date']
             current_features = self.obs_df.iloc[i][self.state_properties]
-            forward_time = (datetime.strptime(self.obs_df.iloc[i+1]['measurement_date'], date_format) - datetime.strptime(current_features[0], date_format)).total_seconds() / 3600
+            forward_time = (datetime.strptime(self.obs_df.iloc[i+1]['measurement_date'], date_format) - datetime.strptime(measurement_date, date_format)).total_seconds() / 3600
             
             next_property_values = self.obs_df.iloc[i+1]
 
             # Forecast the next state
             if i > 0:
+                current_features = current_features.to_dict()
                 predicted_values = self.forecast_next_state(current_features, forward_time)
                 for index, property_name in enumerate(self.state_properties):
-                    
-                    predictions[property_name].append(predicted_values[index])
+                    predictions[property_name].append(predicted_values[property_name])
                     actual[property_name].append(next_property_values[property_name])
                     timestamps.append(self.obs_df.iloc[i + 1]['measurement_date'])
-
         return predictions, actual, timestamps
 
     def get_confidence_intervals(self):
@@ -96,10 +120,17 @@ class HoeffdingStateEstimator():
         predictions, actual, timestamps = self.eval_on_observations()
         for property_name in self.state_properties:
             confidence_level = 0.95
-            std_dev_tvc = np.std(predictions[property_name] - actual[property_name])
+            std_dev_tvc = np.std(np.array(predictions[property_name]) - np.array(actual[property_name]))
             margin_of_error = std_dev_tvc * 1.96  # 95% confidence interval
             margins[property_name] = margin_of_error
         return margins
+    
+    def delete(self, lot_number):
+        # Filter the DataFrame
+        self.obs_df = self.obs_df[self.obs_df['lot_number'] != lot_number]
+
+        # Optionally reset the index if needed
+        self.obs_df.reset_index(drop=True, inplace=True)
     
 state_estimator = HoeffdingStateEstimator(input_dim=3)
 
@@ -142,6 +173,7 @@ def delete_batch(request):
     data_dict = json.loads(data_str)
     batch = Batch.objects.get(id=data_dict['lotId'])
     batch.delete()
+    state_estimator.delete(data_dict['lotId'])
     return Response('Success')
 
 @api_view(['POST'])
@@ -156,6 +188,7 @@ def add_measurement(request):
         viable_cell_density=data_dict['viableCellDensity'],
         cell_diameter=data_dict['cellDiameter'],
     )
+    measurement.save()
     state_estimator.make_observation_and_update({
         'lot_number': batch.lot_number, 
         'measurement_date':data_dict['measurementDate'],
@@ -164,7 +197,9 @@ def add_measurement(request):
         'cell_diameter':data_dict['cellDiameter']})
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
     if(number_measurements_for_lot > 2):
-        print(sim_growth_for_batch(batch))
+        out, margins = sim_growth_for_batch(batch)
+        print(out)
+        print(margins)
     return Response('Success')
 
 @api_view(['POST'])
