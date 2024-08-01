@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import pandas as pd
+import numpy as np
 import json
 from collections import defaultdict
 from skmultiflow.trees import HoeffdingTreeRegressor
@@ -67,6 +68,38 @@ class HoeffdingStateEstimator():
             states_dict[current_date] = next_state
             current_state = next_state
         return states_dict
+
+    def eval_on_observations(self, obs):
+        # assume obs is list of dicts of prediction vs
+        predictions = defaultdict(list)
+        actual = defaultdict(list)
+        timestamps = []
+        for i in range(len(self.obs_df) - 1):
+            current_features = self.obs_df.iloc[i][self.state_properties]
+            forward_time = (datetime.strptime(self.obs_df.iloc[i+1]['measurement_date'], date_format) - datetime.strptime(current_features[0], date_format)).total_seconds() / 3600
+            
+            next_property_values = self.obs_df.iloc[i+1]
+
+            # Forecast the next state
+            if i > 0:
+                predicted_values = self.forecast_next_state(current_features, forward_time)
+                for index, property_name in enumerate(self.state_properties):
+                    
+                    predictions[property_name].append(predicted_values[index])
+                    actual[property_name].append(next_property_values[property_name])
+                    timestamps.append(self.obs_df.iloc[i + 1]['measurement_date'])
+
+        return predictions, actual, timestamps
+
+    def get_confidence_intervals(self):
+        margins = dict()
+        predictions, actual, timestamps = self.eval_on_observations()
+        for property_name in self.state_properties:
+            confidence_level = 0.95
+            std_dev_tvc = np.std(predictions[property_name] - actual[property_name])
+            margin_of_error = std_dev_tvc * 1.96  # 95% confidence interval
+            margins[property_name] = margin_of_error
+        return margins
     
 state_estimator = HoeffdingStateEstimator(input_dim=3)
 
@@ -81,7 +114,8 @@ def sim_growth_for_batch(batch):
     days_forward = 16 - (last_measurements.measurement_date - batch.batch_start_date).days
     forward_time_inc = 24 # predict 24 hours advance at a time
     states_dict = state_estimator.sim_growth(current_state, forward_time_inc, days_forward, last_measurements.measurement_date)
-    return states_dict
+    margins = state_estimator.get_confidence_intervals()
+    return states_dict, margins
 
 @api_view(['GET'])
 def Batches(request):
