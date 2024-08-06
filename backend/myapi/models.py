@@ -17,6 +17,7 @@ class Measurement(models.Model):
     total_viable_cells = models.FloatField(null=True, blank=True)
     viable_cell_density = models.FloatField(null=True, blank=True)
     cell_diameter = models.FloatField(null=True, blank=True)
+    process_time = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.batch

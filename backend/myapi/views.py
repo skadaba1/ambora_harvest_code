@@ -307,6 +307,7 @@ def add_measurement(request):
         total_viable_cells=data_dict['totalViableCells'],
         viable_cell_density=data_dict['viableCellDensity'],
         cell_diameter=data_dict['cellDiameter'],
+        process_time=data_dict['processTime']
     )
     measurement.save()
     loader.get("hfe").make_observation_and_update({

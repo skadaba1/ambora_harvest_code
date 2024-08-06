@@ -80,6 +80,7 @@ const Batches = () => {
   const newTotalViableCellsRef = useRef(null);
   const newViableCellDensityRef = useRef(null);
   const newCellDiameterRef = useRef(null);
+  const newProcessTimeRef = useRef(null);
 
   const getBatches = async () => {
     try {
@@ -145,69 +146,69 @@ const Batches = () => {
           measurementDate: newMeasurementDateRef.current.value,
           totalViableCells: newTotalViableCellsRef.current.value,
           viableCellDensity: newViableCellDensityRef.current.value,
-          cellDiameter: newCellDiameterRef.current.value
+          cellDiameter: newCellDiameterRef.current.value,
+          processTime: newProcessTimeRef.current.value
         }),
       });
 
       if (response.status === 200) {
         const result = await response.json();
         console.log(result);
-        console.log(measurements);
 
-        let labels = [];
-        let cd_data = [];
-        let tvc_data = [];
-        let vcd_data = [];
-        measurements.forEach(measurement => {
-          cd_data.push(measurement.cell_diameter);
-          tvc_data.push(measurement.total_viable_cells);
-          vcd_data.push(measurement.viable_cell_density);
-          labels.push(format(parseISO(measurement.measurement_date), 'yyyy-MM-dd'));
-        });
-        cd_data.push(newCellDiameterRef.current.value);
-        tvc_data.push(newTotalViableCellsRef.current.value);
-        vcd_data.push(newViableCellDensityRef.current.value);
-        labels.push(format(parseISO(newMeasurementDateRef.current.value), 'yyyy-MM-dd'));
-        Object.keys(result.out).forEach(key => {
-          cd_data.push(result.out[key].cell_diameter);
-          tvc_data.push(result.out[key].total_viable_cells);
-          vcd_data.push(result.out[key].viable_cell_density);
-          labels.push(format(parseISO(key), 'yyyy-MM-dd'));
-        });
+        // let labels = [];
+        // let cd_data = [];
+        // let tvc_data = [];
+        // let vcd_data = [];
+        // measurements.forEach(measurement => {
+        //   cd_data.push(measurement.cell_diameter);
+        //   tvc_data.push(measurement.total_viable_cells);
+        //   vcd_data.push(measurement.viable_cell_density);
+        //   labels.push(format(parseISO(measurement.measurement_date), 'yyyy-MM-dd'));
+        // });
+        // cd_data.push(newCellDiameterRef.current.value);
+        // tvc_data.push(newTotalViableCellsRef.current.value);
+        // vcd_data.push(newViableCellDensityRef.current.value);
+        // labels.push(format(parseISO(newMeasurementDateRef.current.value), 'yyyy-MM-dd'));
+        // Object.keys(result.out).forEach(key => {
+        //   cd_data.push(result.out[key].cell_diameter);
+        //   tvc_data.push(result.out[key].total_viable_cells);
+        //   vcd_data.push(result.out[key].viable_cell_density);
+        //   labels.push(format(parseISO(key), 'yyyy-MM-dd'));
+        // });
 
-        console.log(labels);
-        console.log(cd_data);
-        console.log(tvc_data);
-        console.log(vcd_data);
-        setChartData({
-          labels: labels,
-          datasets: [
-            {
-              label: 'Cell Diameter',
-              fill: false,
-              lineTension: 0.1,
-              backgroundColor: 'rgba(75,192,192,0.4)',
-              borderColor: 'rgba(75,192,192,1)',
-              data: cd_data,
-            },
-            {
-              label: 'Total Viable Cells',
-              fill: false,
-              lineTension: 0.1,
-              backgroundColor: 'rgba(153,102,255,0.4)',
-              borderColor: 'rgba(153,102,255,1)',
-              data: tvc_data,
-            },
-            {
-              label: 'Viable Cell Density',
-              fill: false,
-              lineTension: 0.1,
-              backgroundColor: 'rgba(255,159,64,0.4)',
-              borderColor: 'rgba(255,159,64,1)',
-              data: vcd_data,
-            },
-          ],
-        });
+        // console.log(labels);
+        // console.log(cd_data);
+        // console.log(tvc_data);
+        // console.log(vcd_data);
+        // setChartData({
+        //   labels: labels,
+        //   datasets: [
+        //     {
+        //       label: 'Cell Diameter',
+        //       fill: false,
+        //       lineTension: 0.1,
+        //       backgroundColor: 'rgba(75,192,192,0.4)',
+        //       borderColor: 'rgba(75,192,192,1)',
+        //       data: cd_data,
+        //     },
+        //     {
+        //       label: 'Total Viable Cells',
+        //       fill: false,
+        //       lineTension: 0.1,
+        //       backgroundColor: 'rgba(153,102,255,0.4)',
+        //       borderColor: 'rgba(153,102,255,1)',
+        //       data: tvc_data,
+        //     },
+        //     {
+        //       label: 'Viable Cell Density',
+        //       fill: false,
+        //       lineTension: 0.1,
+        //       backgroundColor: 'rgba(255,159,64,0.4)',
+        //       borderColor: 'rgba(255,159,64,1)',
+        //       data: vcd_data,
+        //     },
+        //   ],
+        // });
 
         getMeasurements(batchesView.id);
       } else {
@@ -387,7 +388,7 @@ const Batches = () => {
               showLine: false // This ensures it's a scatter plot without lines
             },
             {
-              label: 'Observed TVC',
+              label: 'Observed VCD',
               data: vcd_obs,
               backgroundColor: 'green',
               borderColor: 'green',
@@ -499,12 +500,16 @@ const Batches = () => {
                 <label style={{ fontWeight: 'bold' }}>Cell Diameter</label>
                 <input className='setting-input' type="number" ref={newCellDiameterRef} />
               </div>
+              <div style={{ marginTop: '30px' }}>
+                <label style={{ fontWeight: 'bold' }}>Process Time (Hours)</label>
+                <input className='setting-input' type="number" ref={newProcessTimeRef} />
+              </div>
               <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                 <button className='batch-submit-btn' onClick={() => onAddMeasurementClick()} style={{ marginTop: '30px', marginRight: '40px' }}>Add Measurement</button>
               </div>
               <p className='delete-batch-btn' onClick={() => onDeleteBatchClick()} style={{ marginTop: '30px' }}> Delete Batch </p>
             </div>
-            <div style={{ paddingLeft: '20px', width: '70%' }}>
+            <div style={{ paddingLeft: '20px', width: '70%', overflowY: 'auto', height: '85vh' }}>
               <h1 style={{ margin: '0px' }}>Measurements</h1>
               {/* <div style={{ display: 'flex' }}>
                 <p className='graph-type-btn'>Total Viable Cells</p>
@@ -523,13 +528,17 @@ const Batches = () => {
               {measurements.map((item, index) => (
             <div
               key={index}
-              style={{ display: 'flex', width: '80%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px', borderBottom: '1px solid lightgray', cursor: 'pointer' }}
+              className='measurement-row'
+              style={{ display: 'flex', width: '80%', padding: '20px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', borderBottom: '1px solid lightgray', cursor: 'pointer' }}
               onClick={() => handleMeasurementClick(batchesView.id, item.id)}
             >
-              <p style={{ margin: '0px', width: '100px' }}>{item.measurement_date}</p>
-              <p style={{ margin: '0px', width: '50px' }}>{item.total_viable_cells}</p>
-              <p style={{ margin: '0px', width: '50px' }}>{item.viable_cell_density}</p>
-              <p style={{ margin: '0px', width: '50px' }}>{item.cell_diameter}</p>
+              <div>
+                <p style={{ margin: '0px', width: '100px' }}>{item.measurement_date.split('T')[0]}</p>
+                <p style={{ margin: '0px', color: 'gray', fontSize: '12px' }}>{item.measurement_date.split('T')[1]}</p>
+              </div>
+              <p style={{ margin: '0px', width: '50px' }}>{(item.total_viable_cells / 1000000000).toFixed(3)}b</p>
+              <p style={{ margin: '0px', width: '50px' }}>{item.viable_cell_density.toFixed(3)}</p>
+              <p style={{ margin: '0px', width: '50px' }}>{item.cell_diameter.toFixed(3)}</p>
             </div>
               ))}
             </div>
