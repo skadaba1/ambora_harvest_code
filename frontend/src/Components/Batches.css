@@ -62,6 +62,11 @@
   color: darkred;
 }
 
+.graph-type-btn {
+  margin-right: 50px;
+  cursor: pointer;
+}
+
 /* Add this to your CSS file */
 .file-input-container {
   position: relative;

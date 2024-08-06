@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faArrowLeft, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { REACT_APP_API_URL } from "../consts";
-import { Line } from 'react-chartjs-2';
+import { Scatter } from 'react-chartjs-2';
 import { addDays, format, parseISO } from 'date-fns';
 import {
   Chart as ChartJS,
@@ -25,25 +25,20 @@ const options = {
     x: {
       type: 'time',
       time: {
-        unit: 'day',
-        tooltipFormat: 'Pp', // Date and time format for tooltips
-        displayFormats: {
-          day: 'yyyy-MM-dd',
-        },
+        unit: 'day'
       },
       title: {
         display: true,
-        text: 'Date',
-      },
+        text: 'Date'
+      }
     },
     y: {
-      beginAtZero: true,
       title: {
         display: true,
-        text: 'Value',
-      },
-    },
-  },
+        text: 'Total Viable Cells (Billions)'
+      }
+    }
+  }
 };
 
 const Batches = () => {
@@ -335,6 +330,85 @@ const Batches = () => {
         const result = await response.json();
         console.log('API call successful:', result);
         // Handle the result as needed
+        let labels = []
+        let tvc_pred = []
+        let tvc_obs = []
+        let vcd_pred = []
+        let vcd_obs = []
+        let cd_pred = []
+        let cd_obs = []
+        let i = 0;
+        for (const key in result['unified_obs_and_preds']) {
+          const date = new Date(result['unified_obs_and_preds'][key]['date']);
+          if (!isNaN(date.getTime())) {
+            labels.push(date);
+            const predictedValue = result['unified_obs_and_preds'][key]['values']['predicted']
+              && result['unified_obs_and_preds'][key]['values']['predicted']['total_viable_cells'] / 1000000000;
+            const observedValue = result['unified_obs_and_preds'][key]['values']['observed']
+              && result['unified_obs_and_preds'][key]['values']['observed']['total_viable_cells'] / 1000000000;
+            const predictedVcd = result['unified_obs_and_preds'][key]['values']['predicted']
+              && result['unified_obs_and_preds'][key]['values']['predicted']['viable_cell_density'];
+            const observedVcd = result['unified_obs_and_preds'][key]['values']['observed']
+              && result['unified_obs_and_preds'][key]['values']['observed']['viable_cell_density'];
+            const predictedCd = result['unified_obs_and_preds'][key]['values']['predicted']
+              && result['unified_obs_and_preds'][key]['values']['predicted']['cell_diameter'];
+            const observedCd = result['unified_obs_and_preds'][key]['values']['observed']
+              && result['unified_obs_and_preds'][key]['values']['observed']['cell_diameter'];
+            tvc_pred.push({ x: date, y: predictedValue });
+            tvc_obs.push({ x: date, y: observedValue });
+            vcd_pred.push({ x: date, y: predictedVcd });
+            vcd_obs.push({ x: date, y: observedVcd });
+            cd_pred.push({ x: date, y: predictedCd });
+            cd_obs.push({ x: date, y: observedCd });
+          }
+        }
+        console.log(tvc_pred)
+        setChartData({
+          datasets: [
+            {
+              label: 'Predicted TVC',
+              data: tvc_pred,
+              backgroundColor: 'lightblue',
+              borderColor: 'lightblue',
+              showLine: false // This ensures it's a scatter plot without lines
+            },
+            {
+              label: 'Observed TVC',
+              data: tvc_obs,
+              backgroundColor: 'blue',
+              borderColor: 'blue',
+              showLine: false // This ensures it's a scatter plot without lines
+            },
+            {
+              label: 'Predicted VCD',
+              data: vcd_pred,
+              backgroundColor: 'lightgreen',
+              borderColor: 'lightgreen',
+              showLine: false // This ensures it's a scatter plot without lines
+            },
+            {
+              label: 'Observed TVC',
+              data: vcd_obs,
+              backgroundColor: 'green',
+              borderColor: 'green',
+              showLine: false // This ensures it's a scatter plot without lines
+            },
+            {
+              label: 'Predicted CD',
+              data: cd_pred,
+              backgroundColor: 'pink',
+              borderColor: 'pink',
+              showLine: false // This ensures it's a scatter plot without lines
+            },
+            {
+              label: 'Observed CD',
+              data: cd_obs,
+              backgroundColor: 'red',
+              borderColor: 'red',
+              showLine: false // This ensures it's a scatter plot without lines
+            },
+          ]
+        });
       } else {
         const errorData = await response.json();
         console.error('Error in API call:', errorData.error);
@@ -432,7 +506,14 @@ const Batches = () => {
             </div>
             <div style={{ paddingLeft: '20px', width: '70%' }}>
               <h1 style={{ margin: '0px' }}>Measurements</h1>
-              <Line data={chartData} options={options} />
+              {/* <div style={{ display: 'flex' }}>
+                <p className='graph-type-btn'>Total Viable Cells</p>
+                <p className='graph-type-btn'>Viable Cell Density</p>
+                <p className='graph-type-btn'>Cell Diameter</p>
+              </div> */}
+              <div style={{ width: '85%' }}>
+              <Scatter data={chartData} options={options} width={100} height={50}/>
+              </div>
               <div style={{ display: 'flex', width: '80%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
                 <p style={{ margin: '0px', width: '100px', fontWeight: 'bold' }}>Date</p>
                 <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>TVC</p>
