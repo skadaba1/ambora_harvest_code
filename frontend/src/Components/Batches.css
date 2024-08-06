@@ -61,3 +61,25 @@
   /* color: rgb(189, 0, 0); */
   color: darkred;
 }
+
+/* Add this to your CSS file */
+.file-input-container {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.file-input-container input[type="file"] {
+  position: absolute;
+  font-size: 100px;
+  opacity: 0;
+  right: 0;
+  top: 0;
+}
+
+.add-batch-btn {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}

@@ -1,7 +1,7 @@
 import './Batches.css'
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faArrowLeft, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { REACT_APP_API_URL } from "../consts";
 import { Line } from 'react-chartjs-2';
 import { addDays, format, parseISO } from 'date-fns';
@@ -81,9 +81,6 @@ const Batches = () => {
   });
   const lotNumberRef = useRef(null);
   const batchStartDateRef = useRef(null);
-  // const totalViableCellsRef = useRef(null);
-  // const viableCellDensityRef = useRef(null);
-  // const cellDiameterRef = useRef(null);
   const newMeasurementDateRef = useRef(null);
   const newTotalViableCellsRef = useRef(null);
   const newViableCellDensityRef = useRef(null);
@@ -91,9 +88,8 @@ const Batches = () => {
 
   const getBatches = async () => {
     try {
-      // const accessToken = localStorage.getItem('accessToken');      
       const response = await fetch(REACT_APP_API_URL + 'api/batches/', {
-        method: 'GET',  // Ensure this matches the view method
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -105,30 +101,27 @@ const Batches = () => {
         setBatches(result);
       } else {
         const errorData = await response.json();
-        console.error('Error uploading URL:', errorData.error);
+        console.error('Error fetching batches:', errorData.error);
       }
     } catch (error) {
-      console.error('Error uploading URL:', error);
+      console.error('Error fetching batches:', error);
     }
   }
 
-  useEffect(() => {    
+  useEffect(() => {
     getBatches();
-  }, [])
+  }, []);
 
   const onAddBatchClick = async () => {
-    try {     
+    try {
       const response = await fetch(REACT_APP_API_URL + 'api/add-batch/', {
-        method: 'POST',  // Ensure this matches the view method
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           lotNumber: lotNumberRef.current.value,
           batchStartDate: batchStartDateRef.current.value,
-          // totalViableCells: totalViableCellsRef.current.value,
-          // viableCellDensity: viableCellDensityRef.current.value,
-          // cellDiameter: cellDiameterRef.current.value
         }),
       });
 
@@ -136,19 +129,19 @@ const Batches = () => {
         const result = await response.json();
       } else {
         const errorData = await response.json();
-        console.error('Error uploading URL:', errorData.error);
+        console.error('Error adding batch:', errorData.error);
       }
     } catch (error) {
-      console.error('Error uploading URL:', error);
+      console.error('Error adding batch:', error);
     }
     setBatchesView('batches');
     getBatches();
   }
 
   const onAddMeasurementClick = async () => {
-    try {     
+    try {
       const response = await fetch(REACT_APP_API_URL + 'api/add-measurement/', {
-        method: 'POST',  // Ensure this matches the view method
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -175,11 +168,11 @@ const Batches = () => {
           tvc_data.push(measurement.total_viable_cells);
           vcd_data.push(measurement.viable_cell_density);
           labels.push(format(parseISO(measurement.measurement_date), 'yyyy-MM-dd'));
-        })
+        });
         cd_data.push(newCellDiameterRef.current.value);
         tvc_data.push(newTotalViableCellsRef.current.value);
         vcd_data.push(newViableCellDensityRef.current.value);
-        labels.push(format(parseISO(newMeasurementDateRef.current.value), 'yyyy-MM-dd'))
+        labels.push(format(parseISO(newMeasurementDateRef.current.value), 'yyyy-MM-dd'));
         Object.keys(result.out).forEach(key => {
           cd_data.push(result.out[key].cell_diameter);
           tvc_data.push(result.out[key].total_viable_cells);
@@ -221,20 +214,20 @@ const Batches = () => {
           ],
         });
 
-        getMeasurements();
+        getMeasurements(batchesView.id);
       } else {
         const errorData = await response.json();
-        console.error('Error:', errorData.error);
+        console.error('Error adding measurement:', errorData.error);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error adding measurement:', error);
     }
   }
 
   const onDeleteBatchClick = async () => {
     try {
       const response = await fetch(REACT_APP_API_URL + 'api/delete-batch/', {
-        method: 'POST',  // Ensure this matches the view method
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -248,22 +241,42 @@ const Batches = () => {
         getBatches();
       } else {
         const errorData = await response.json();
-        console.error('Error:', errorData.error);
+        console.error('Error deleting batch:', errorData.error);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error deleting batch:', error);
     }
   }
 
-  const getMeasurements = async () => {
+  const deleteAllBatches = async () => {
+    try {
+      const response = await fetch(REACT_APP_API_URL + 'api/delete-all-batches/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 200) {
+        getBatches();
+      } else {
+        const errorData = await response.json();
+        console.error('Error deleting all batches:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Error deleting all batches:', error);
+    }
+  }
+
+  const getMeasurements = async (batchId) => {
     try {
       const response = await fetch(REACT_APP_API_URL + 'api/get-measurements/', {
-        method: 'POST',  // Ensure this matches the view method
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          lotId: batchesView.id
+          lotId: batchId
         }),
       });
 
@@ -273,128 +286,175 @@ const Batches = () => {
         setMeasurements(result);
       } else {
         const errorData = await response.json();
-        console.error('Error:', errorData.error);
+        console.error('Error fetching measurements:', errorData.error);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching measurements:', error);
     }
   }
 
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch(REACT_APP_API_URL + 'api/upload-process-file/', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('File uploaded successfully:', data);
+        } else {
+          console.error('File upload failed:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    }
+  }
+
+  const handleMeasurementClick = async (batchId, measurementId) => {
+    console.log('handleMeasurementClick:', batchId, measurementId);
+    try {
+      const response = await fetch(REACT_APP_API_URL + 'api/sim-growth/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          batchId: batchId,
+          measurementId: measurementId,
+        }),
+      });
+  
+      if (response.status === 200) {
+        const result = await response.json();
+        console.log('API call successful:', result);
+        // Handle the result as needed
+      } else {
+        const errorData = await response.json();
+        console.error('Error in API call:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Error in API call:', error);
+    }
+  };
 
   return (
     <>
-    {batchesView === 'batches' ? (
-      <div style={{ padding: '3%', flex: 1, overflowY: 'auto' }}>
-        <div style={{ display: 'flex', marginBottom: '20px' }}>
-          <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batches</h1>
-          <button className='add-batch-btn' style={{ display: 'flex', alignItems: 'center' }} onClick={() => setBatchesView('addBatch')}> 
-            <FontAwesomeIcon icon={faPlus} /> 
-            <p style={{ margin: '0px', marginLeft: '5px', fontWeight: 'bold' }}>Add Batch</p>
-          </button>
-        </div>
-        <div style={{ display: 'flex', width: '80%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
-          <p style={{ margin: '0px' }}>Lot Number</p>
-          <p style={{ margin: '0px' }}>Cell Count</p>
-          <p style={{ margin: '0px' }}>Predicted Harvest</p>
-        </div>
-        {batches.map((item, index) => (
-          <div 
-            className='batches-row' 
-            onClick={() => {
-              setBatchesView({id: item.id, lotNumber: item.lot_number}) 
-              getMeasurements()
-            }} 
-            style={{ display: 'flex', width: '80%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}
-          >
-            <p style={{ margin: '0px' }}>{item.lot_number}</p>
-            <p style={{ margin: '0px' }}>{item.total_viable_cells}</p>
-            <p style={{ margin: '0px' }}>{item.batch_start_date}</p>
+      {batchesView === 'batches' ? (
+        <div style={{ padding: '3%', flex: 1, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', marginBottom: '20px' }}>
+            <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batches</h1>
+            <button className='add-batch-btn' style={{ display: 'flex', alignItems: 'center' }} onClick={() => setBatchesView('addBatch')}>
+              <FontAwesomeIcon icon={faPlus} />
+              <p style={{ margin: '0px', marginLeft: '5px', fontWeight: 'bold' }}>Add Batch</p>
+            </button>
+            <button className="file-input-container add-batch-btn" style={{ position: 'relative' }}>
+              <FontAwesomeIcon icon={faPlus} />
+              <p style={{ margin: '0px', marginLeft: '5px', fontWeight: 'bold' }}>Upload File</p>
+              <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} style={{ position: 'absolute', top: '0', left: '0', opacity: '0', width: '100%', height: '100%', cursor: 'pointer' }} />
+            </button>
+            <FontAwesomeIcon icon={faTrash} onClick={deleteAllBatches} size='2x' style={{ marginLeft: '20px', cursor: 'pointer'}} />
           </div>
-        ))}
-      </div>
-    ) : batchesView === 'addBatch' ? (
-      <div style={{ paddingLeft: '3%', paddingTop: '3%' }}>
-        <div className='back-btn' style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '20px' }}>
-          <FontAwesomeIcon icon={faArrowLeft} /> 
-          <p onClick={() => setBatchesView('batches')} style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Back</p>
+          <div style={{ display: 'flex', width: '95%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
+            <p style={{ margin: '0px' }}>Lot Number</p>
+            {/* <p style={{ margin: '0px' }}>Cell Count</p> */}
+            <p style={{ margin: '0px' }}>Batch Start Date</p>
+          </div>
+          {batches.map((item, index) => (
+            <div
+              key={index}
+              className='batches-row'
+              onClick={() => {
+                setBatchesView({ id: item.id, lotNumber: item.lot_number });
+                getMeasurements(item.id);
+              }}
+              style={{ display: 'flex', width: '95%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}
+            >
+              <p style={{ margin: '0px' }}>{item.lot_number}</p>
+              {/* <p style={{ margin: '0px' }}>{item.total_viable_cells}</p> */}
+              <p style={{ margin: '0px' }}>{item.batch_start_date}</p>
+            </div>
+          ))}
         </div>
-        <div style={{ marginTop: '30px' }}>
-          <label style={{ fontWeight: 'bold' }}>Lot Number</label>
-          <input className='setting-input' ref={lotNumberRef}/>
-        </div>
-        <div style={{ marginTop: '30px' }}>
-          <label style={{ fontWeight: 'bold' }}>Batch Start Date</label>
-          <input className='setting-input' type="datetime-local" ref={batchStartDateRef}/>
-        </div>
-        {/* <div style={{ marginTop: '30px' }}>
-          <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
-          <input className='setting-input' type="number" ref={totalViableCellsRef}/>
-        </div>
-        <div style={{ marginTop: '30px' }}>
-          <label style={{ fontWeight: 'bold' }}>Viable Cell Density</label>
-          <input className='setting-input' type="number" ref={viableCellDensityRef}/>
-        </div>
-        <div style={{ marginTop: '30px' }}>
-          <label style={{ fontWeight: 'bold' }}>Cell Diameter</label>
-          <input className='setting-input' type="number" ref={cellDiameterRef}/>
-        </div> */}
-        <button className='batch-submit-btn' onClick={() => onAddBatchClick()} style={{ marginTop: '30px' }}>Submit</button>
-      </div>
-    ) : (
-      <div style={{ paddingLeft: '3%', paddingTop: '3%', flex: 1 }}>
-        <div style={{ display: 'flex', marginBottom: '20px' }}>
+      ) : batchesView === 'addBatch' ? (
+        <div style={{ paddingLeft: '3%', paddingTop: '3%' }}>
           <div className='back-btn' style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '20px' }}>
-            <FontAwesomeIcon icon={faArrowLeft} /> 
+            <FontAwesomeIcon icon={faArrowLeft} />
             <p onClick={() => setBatchesView('batches')} style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Back</p>
           </div>
-        </div>
-        <div style={{ display: 'flex' }}>
-          <div style={{ width: '30%', borderRight: '1px solid lightgray', paddingRight: '20px' }}>
-            <h1 style={{margin: '0px' }}> Batch {batchesView.lotNumber} </h1>
-            <div style={{ marginTop: '30px' }}>
-              <label style={{ fontWeight: 'bold' }}>Measurement Date</label>
-              <input className='setting-input' type="datetime-local" ref={newMeasurementDateRef}/>
-            </div>
-            <div style={{ marginTop: '30px' }}>
-              <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
-              <input className='setting-input' type="number" ref={newTotalViableCellsRef}/>
-            </div>
-            <div style={{ marginTop: '30px' }}>
-              <label style={{ fontWeight: 'bold' }}>Viable Cell Density</label>
-              <input className='setting-input' type="number" ref={newViableCellDensityRef}/>
-            </div>
-            <div style={{ marginTop: '30px' }}>
-              <label style={{ fontWeight: 'bold' }}>Cell Diameter</label>
-              <input className='setting-input' type="number" ref={newCellDiameterRef}/>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end'  }}>
-              <button className='batch-submit-btn' onClick={() => onAddMeasurementClick()} style={{ marginTop: '30px', marginRight: '40px' }}>Add Measurement</button>
-            </div>
-            <p className='delete-batch-btn' onClick={() => onDeleteBatchClick()} style={{marginTop: '30px'}}> Delete Batch </p>
+          <div style={{ marginTop: '30px' }}>
+            <label style={{ fontWeight: 'bold' }}>Lot Number</label>
+            <input className='setting-input' ref={lotNumberRef} />
           </div>
-          <div style={{ paddingLeft: '20px', width: '70%' }}>
-            <h1 style={{margin: '0px' }}>Measurements</h1>
-            <Line data={chartData} options={options} />
-            <div style={{ display: 'flex', width: '80%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
-              <p style={{ margin: '0px', width: '100px', fontWeight: 'bold' }}>Date</p>
-              <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>TVC</p>
-              <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>VCD</p>
-              <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>CD</p>
+          <div style={{ marginTop: '30px' }}>
+            <label style={{ fontWeight: 'bold' }}>Batch Start Date</label>
+            <input className='setting-input' type="datetime-local" ref={batchStartDateRef} />
+          </div>
+          <button className='batch-submit-btn' onClick={() => onAddBatchClick()} style={{ marginTop: '30px' }}>Submit</button>
+        </div>
+      ) : (
+        <div style={{ paddingLeft: '3%', paddingTop: '3%', flex: 1 }}>
+          <div style={{ display: 'flex', marginBottom: '20px' }}>
+            <div className='back-btn' style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '20px' }}>
+              <FontAwesomeIcon icon={faArrowLeft} />
+              <p onClick={() => setBatchesView('batches')} style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Back</p>
             </div>
-            {measurements.map((item, index) => (
-              <div 
-                style={{ display: 'flex', width: '80%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px', borderBottom: '1px solid lightgray' }}
-              >
-                <p style={{ margin: '0px', width: '100px' }}>{item.measurement_date}</p>
-                <p style={{ margin: '0px', width: '50px' }}>{item.total_viable_cells}</p>
-                <p style={{ margin: '0px', width: '50px' }}>{item.viable_cell_density}</p>
-                <p style={{ margin: '0px', width: '50px' }}>{item.cell_diameter}</p>
+          </div>
+          <div style={{ display: 'flex' }}>
+            <div style={{ width: '30%', borderRight: '1px solid lightgray', paddingRight: '20px' }}>
+              <h1 style={{ margin: '0px' }}> Batch {batchesView.lotNumber} </h1>
+              <div style={{ marginTop: '30px' }}>
+                <label style={{ fontWeight: 'bold' }}>Measurement Date</label>
+                <input className='setting-input' type="datetime-local" ref={newMeasurementDateRef} />
               </div>
-            ))}
+              <div style={{ marginTop: '30px' }}>
+                <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
+                <input className='setting-input' type="number" ref={newTotalViableCellsRef} />
+              </div>
+              <div style={{ marginTop: '30px' }}>
+                <label style={{ fontWeight: 'bold' }}>Viable Cell Density</label>
+                <input className='setting-input' type="number" ref={newViableCellDensityRef} />
+              </div>
+              <div style={{ marginTop: '30px' }}>
+                <label style={{ fontWeight: 'bold' }}>Cell Diameter</label>
+                <input className='setting-input' type="number" ref={newCellDiameterRef} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button className='batch-submit-btn' onClick={() => onAddMeasurementClick()} style={{ marginTop: '30px', marginRight: '40px' }}>Add Measurement</button>
+              </div>
+              <p className='delete-batch-btn' onClick={() => onDeleteBatchClick()} style={{ marginTop: '30px' }}> Delete Batch </p>
+            </div>
+            <div style={{ paddingLeft: '20px', width: '70%' }}>
+              <h1 style={{ margin: '0px' }}>Measurements</h1>
+              <Line data={chartData} options={options} />
+              <div style={{ display: 'flex', width: '80%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
+                <p style={{ margin: '0px', width: '100px', fontWeight: 'bold' }}>Date</p>
+                <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>TVC</p>
+                <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>VCD</p>
+                <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>CD</p>
+              </div>
+              {measurements.map((item, index) => (
+            <div
+              key={index}
+              style={{ display: 'flex', width: '80%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px', borderBottom: '1px solid lightgray', cursor: 'pointer' }}
+              onClick={() => handleMeasurementClick(batchesView.id, item.id)}
+            >
+              <p style={{ margin: '0px', width: '100px' }}>{item.measurement_date}</p>
+              <p style={{ margin: '0px', width: '50px' }}>{item.total_viable_cells}</p>
+              <p style={{ margin: '0px', width: '50px' }}>{item.viable_cell_density}</p>
+              <p style={{ margin: '0px', width: '50px' }}>{item.cell_diameter}</p>
+            </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </>
   );
 }

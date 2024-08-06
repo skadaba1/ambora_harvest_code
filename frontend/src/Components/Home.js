@@ -6,7 +6,7 @@ import Schedule from './Schedule';
 import { useState } from 'react';
 
 function Home() {
-  const [appView, setAppView] = useState('simulation');
+  const [appView, setAppView] = useState('batches');
 
   return (
     <div className="App" style={{ display: 'flex', height: '100vh' }}>

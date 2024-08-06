@@ -7,22 +7,81 @@ import numpy as np
 import json
 from collections import defaultdict
 from skmultiflow.trees import HoeffdingTreeRegressor
+import os
+import tempfile
+from django.shortcuts import get_object_or_404
 from .models import Batch, Measurement
 from .serializers import BatchSerializer, MeasurementSerializer
 from datetime import datetime, timedelta
 
+
 date_format = "%Y-%m-%dT%H:%M"  # For 'datetime-local' input type
 
 def convert_datetime_string(date_string):
-    actual_format = '%Y-%m-%d %H:%M:%S%z'
     try:
-        dt = datetime.strptime(date_string, actual_format)
+        dt = datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S%z')
     except ValueError as e:
-        print(f"Error parsing date string: {e}")
-        return None
+        try:
+            dt = datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S')
+        except ValueError as e:
+            print(f"Error parsing date string: {date_string}, with error: {e}")
+            return None
     desired_format = '%Y-%m-%dT%H:%M'
     formatted_string = dt.strftime(desired_format)
     return formatted_string
+
+# Function to read Excel file and process data
+def process_excel(file_path, sheet_name):
+    df = pd.read_excel(file_path, sheet_name, header=1)
+    #print(df.columns)
+    # Columns to check for NaNs
+    columns_to_check = ['Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)']
+
+    # Remove rows where any of the specified columns have NaNs
+    df_cleaned = df.dropna(subset=columns_to_check)
+    df_cleaned = df_cleaned.dropna(axis=1, how='all')
+    df_cleaned = df_cleaned[['Lot Number', 'Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)', 'Unit Op Start Time 1', 'Unit Op Finish Time 1']]
+    return df_cleaned
+
+def process_file(file_path):
+    file_path = file_path
+    excel_file = pd.ExcelFile(file_path)
+    sheet_names = excel_file.sheet_names
+    batch_start_date = None
+    for sheet_name in sheet_names:
+        if('_Process Data' in sheet_name and "Master" not in sheet_name):
+            try:
+                print("SHEET: " + sheet_name)
+                df = process_excel(file_path, sheet_name)
+                for index, row in df.iterrows():
+                    if pd.notna(row['Unit Op Start Time 1']):
+                        print(row)
+                        if(not batch_start_date):
+                            batch_start_date = convert_datetime_string(str(row['Unit Op Start Time 1']))
+                        add_measurement_direct(convert_datetime_string(str(row['Unit Op Start Time 1'])), row['Lot Number'], row['TVC (cells)'], row['Avg Viability (%)'], row['Avg Cell Diameter (um)'], batch_start_date)
+            except Exception as e:
+               print(f"Error processing sheet '{sheet_name}': {e}")
+        batch_start_date = None
+
+def add_measurement_direct(measurement_date, lot_number, total_viable_cells, viable_cell_density, cell_diameter, batch_start_date):
+    batch, created = Batch.objects.get_or_create(lot_number=lot_number, defaults={'batch_start_date': batch_start_date})
+    measurement = Measurement.objects.create(
+        batch=batch,
+        measurement_date=measurement_date,
+        total_viable_cells=total_viable_cells,
+        viable_cell_density=viable_cell_density,
+        cell_diameter=cell_diameter,
+    )
+    measurement.save()
+    loader.get("hfe").make_observation_and_update({
+        'lot_number': batch.lot_number,
+        'measurement_date': measurement_date,
+        'total_viable_cells': total_viable_cells,
+        'viable_cell_density': viable_cell_density,
+        'cell_diameter': cell_diameter
+    })
+    number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
+    return {'number_measurements': number_measurements_for_lot}
 
 class HoeffdingStateEstimator():
     def __init__(self, input_dim, state_properties=['total_viable_cells', 'viable_cell_density', 'cell_diameter']):
@@ -132,12 +191,10 @@ class HoeffdingStateEstimator():
 
         # Optionally reset the index if needed
         self.obs_df.reset_index(drop=True, inplace=True)
-    
-state_estimator = HoeffdingStateEstimator(input_dim=3)
 
-def sim_growth_for_batch(batch):
+def sim_growth_for_batch(batch, measurement):
     measurements = Measurement.objects.filter(batch=batch)
-    last_measurements = measurements.last()
+    last_measurements = measurement
     current_state = {
         'total_viable_cells': float(last_measurements.total_viable_cells), 
         'viable_cell_density': float(last_measurements.viable_cell_density), 
@@ -145,9 +202,21 @@ def sim_growth_for_batch(batch):
         } 
     days_forward = 16 - (last_measurements.measurement_date - batch.batch_start_date).days
     forward_time_inc = 24 # predict 24 hours advance at a time
-    states_dict = state_estimator.sim_growth(current_state, forward_time_inc, days_forward, last_measurements.measurement_date)
-    margins = state_estimator.get_confidence_intervals()
+    states_dict = loader.get("hfe").sim_growth(current_state, forward_time_inc, days_forward, last_measurements.measurement_date)
+    margins = loader.get("hfe").get_confidence_intervals()
     return states_dict, margins
+
+class LazyLoader:
+    def __init__(self):
+        self.models = {}
+
+    def get(self, name):
+        if name not in self.models:
+            if(name == 'hfe'):
+                self.models[name] = HoeffdingStateEstimator(input_dim=3)
+        return self.models[name]
+
+loader = LazyLoader()
 
 @api_view(['GET'])
 def Batches(request):
@@ -174,7 +243,7 @@ def delete_batch(request):
     data_dict = json.loads(data_str)
     batch = Batch.objects.get(id=data_dict['lotId'])
     batch.delete()
-    state_estimator.delete(data_dict['lotId'])
+    loader.get("hfe").delete(data_dict['lotId'])
     return Response('Success')
 
 @api_view(['POST'])
@@ -190,25 +259,79 @@ def add_measurement(request):
         cell_diameter=data_dict['cellDiameter'],
     )
     measurement.save()
-    state_estimator.make_observation_and_update({
+    loader.get("hfe").make_observation_and_update({
         'lot_number': batch.lot_number, 
         'measurement_date':data_dict['measurementDate'],
         'total_viable_cells':data_dict['totalViableCells'],
         'viable_cell_density':data_dict['viableCellDensity'],
         'cell_diameter':data_dict['cellDiameter']})
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
-    out_dict = {}
-    margins_dict = {}
-    if(number_measurements_for_lot > 2):
-        out, margins = sim_growth_for_batch(batch)
-        out_dict = dict(out)
-        margins_dict = dict(margins)
-        print(out)
-        print(margins)
-    return Response({'out': out_dict, 'margins': margins_dict})
+    return Response({'number_measurements': number_measurements_for_lot})
 
 @api_view(['POST'])
 def get_measurements(request):
-    measurements = Measurement.objects.all()
+    batch = Batch.objects.get(id=request.data['lotId'])
+    measurements = Measurement.objects.filter(batch=batch)
     serializer = MeasurementSerializer(measurements, many=True)
     return Response(serializer.data)
+
+@api_view(['POST'])
+def upload_process_file(request):
+    if request.method == 'POST' and request.FILES['file']:
+        file = request.FILES['file']
+        
+        # Create a temporary file path
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
+            for chunk in file.chunks():
+                tmp_file.write(chunk)
+            tmp_file_path = tmp_file.name
+
+        try:
+            # Call your existing function to process the Excel file
+            process_file(tmp_file_path)
+            return Response({'status': 'success'}, status=200)
+        except Exception as e:
+            print(e)
+            return Response({'status': 'error', 'message': str(e)}, status=500)
+        finally:
+            # Clean up the temporary file
+            os.remove(tmp_file_path)
+    else:
+        return Response({'status': 'error', 'message': 'No file uploaded'}, status=400)
+    
+@api_view(['POST'])
+def delete_all_batches(request):
+    batches = Batch.objects.all()
+    batches.delete()
+    return Response({'status': 'success'})
+
+@api_view(['POST'])
+def sim_growth(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            batch_id = data.get('batchId')
+            measurement_id = data.get('measurementId')
+
+            batch = Batch.objects.filter(id=batch_id).first()
+            measurement = Measurement.objects.filter(id=measurement_id, batch=batch).first()
+
+            # Do something with the batch and measurement objects
+            # For example, simulate growth based on the measurement
+
+            # Simulate growth
+            states_dict, margins = sim_growth_for_batch(batch, measurement)
+            print(states_dict, margins)
+
+            response_data = {
+                'state_predictions': states_dict,
+                'state_margins': margins,
+                # Add more fields as needed based on your simulation results
+            }
+            return Response(response_data, status=200)
+
+        except (json.JSONDecodeError, KeyError):
+            return Response({'error': 'Invalid request data'}, status=400)
+
+    return Response({'error': 'Invalid request method'}, status=405)
+
