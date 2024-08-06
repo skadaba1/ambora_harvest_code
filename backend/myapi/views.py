@@ -377,11 +377,10 @@ def sim_growth(request):
             states_dict, margins = sim_growth_for_batch(batch, measurement)
             unified_list = unify_data(observed, states_dict)
 
-            print(unified_list)
-
             response_data = {
                 'state_predictions': states_dict,
                 'state_margins': margins,
+                'unified_obs_and_preds': unified_list
                 # Add more fields as needed based on your simulation results
             }
             return Response(response_data, status=200)
