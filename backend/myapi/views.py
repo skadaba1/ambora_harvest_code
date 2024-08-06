@@ -83,6 +83,56 @@ def add_measurement_direct(measurement_date, lot_number, total_viable_cells, via
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
     return {'number_measurements': number_measurements_for_lot}
 
+# Define a function to parse datetime strings
+def parse_datetime(dt_str):
+    return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+
+# Aggregate observations by day
+def aggregate_observations(observations):
+    daily_observations = defaultdict(list)
+    
+    for obs in observations:
+        date = parse_datetime(obs['measurement_date']).date()
+        daily_observations[date].append(obs)
+    
+    # For each day, compute average values of total viable cells, viable cell density, and cell diameter
+    aggregated_observations = {}
+    for date, obs_list in daily_observations.items():
+        total_viable_cells = sum(obs['total_viable_cells'] for obs in obs_list) / len(obs_list)
+        viable_cell_density = sum(obs['viable_cell_density'] for obs in obs_list) / len(obs_list)
+        cell_diameter = sum(obs['cell_diameter'] for obs in obs_list) / len(obs_list)
+        aggregated_observations[date] = {
+            'total_viable_cells': total_viable_cells,
+            'viable_cell_density': viable_cell_density,
+            'cell_diameter': cell_diameter
+        }
+    
+    return aggregated_observations
+
+# Combine observations and predictions into a unified list of dictionaries
+# Combine observations and predictions into a unified list of dictionaries
+def unify_data(observations, predictions):
+    aggregated_observations = aggregate_observations(observations)
+    
+    unified_data = defaultdict(dict)
+    
+    # Add aggregated observations
+    for date, obs in aggregated_observations.items():
+        unified_data[date]['observed'] = obs
+    
+    # Add predictions
+    for pred_date_str, pred in predictions.items():
+        pred_date = parse_datetime(pred_date_str).date()
+        unified_data[pred_date]['predicted'] = pred
+    
+    # Convert unified data to a list of dictionaries
+    unified_list = []
+    for date, values in unified_data.items():
+        date_str = date.isoformat()
+        unified_list.append({'date': date_str, 'values': values})
+    
+    return unified_list
+
 class HoeffdingStateEstimator():
     def __init__(self, input_dim, state_properties=['total_viable_cells', 'viable_cell_density', 'cell_diameter']):
         self.tree_models_dict = dict()
@@ -316,12 +366,18 @@ def sim_growth(request):
             batch = Batch.objects.filter(id=batch_id).first()
             measurement = Measurement.objects.filter(id=measurement_id, batch=batch).first()
 
+            observed = []
+            for observed_measurement in Measurement.objects.filter(batch=batch):
+                observed.append(MeasurementSerializer(observed_measurement).data)
+        
             # Do something with the batch and measurement objects
             # For example, simulate growth based on the measurement
 
             # Simulate growth
             states_dict, margins = sim_growth_for_batch(batch, measurement)
-            print(states_dict, margins)
+            unified_list = unify_data(observed, states_dict)
+
+            print(unified_list)
 
             response_data = {
                 'state_predictions': states_dict,
