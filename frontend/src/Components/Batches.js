@@ -45,7 +45,36 @@ const Batches = () => {
   const [batchesView, setBatchesView] = useState('batches');
   const [batches, setBatches] = useState([]);
   const [measurements, setMeasurements] = useState([]);
-  const [chartData, setChartData] = useState({
+  const [chartDataA, setChartDataA] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Measurement Value 1',
+        fill: false,
+        lineTension: 0.1,
+        backgroundColor: 'rgba(75,192,192,0.4)',
+        borderColor: 'rgba(75,192,192,1)',
+        data: [],
+      },
+      {
+        label: 'Measurement Value 2',
+        fill: false,
+        lineTension: 0.1,
+        backgroundColor: 'rgba(153,102,255,0.4)',
+        borderColor: 'rgba(153,102,255,1)',
+        data: [],
+      },
+      {
+        label: 'Measurement Value 3',
+        fill: false,
+        lineTension: 0.1,
+        backgroundColor: 'rgba(255,159,64,0.4)',
+        borderColor: 'rgba(255,159,64,1)',
+        data: [],
+      },
+    ],
+  });
+  const [chartDataB, setChartDataB] = useState({
     labels: [],
     datasets: [
       {
@@ -154,61 +183,6 @@ const Batches = () => {
       if (response.status === 200) {
         const result = await response.json();
         console.log(result);
-
-        // let labels = [];
-        // let cd_data = [];
-        // let tvc_data = [];
-        // let vcd_data = [];
-        // measurements.forEach(measurement => {
-        //   cd_data.push(measurement.cell_diameter);
-        //   tvc_data.push(measurement.total_viable_cells);
-        //   vcd_data.push(measurement.viable_cell_density);
-        //   labels.push(format(parseISO(measurement.measurement_date), 'yyyy-MM-dd'));
-        // });
-        // cd_data.push(newCellDiameterRef.current.value);
-        // tvc_data.push(newTotalViableCellsRef.current.value);
-        // vcd_data.push(newViableCellDensityRef.current.value);
-        // labels.push(format(parseISO(newMeasurementDateRef.current.value), 'yyyy-MM-dd'));
-        // Object.keys(result.out).forEach(key => {
-        //   cd_data.push(result.out[key].cell_diameter);
-        //   tvc_data.push(result.out[key].total_viable_cells);
-        //   vcd_data.push(result.out[key].viable_cell_density);
-        //   labels.push(format(parseISO(key), 'yyyy-MM-dd'));
-        // });
-
-        // console.log(labels);
-        // console.log(cd_data);
-        // console.log(tvc_data);
-        // console.log(vcd_data);
-        // setChartData({
-        //   labels: labels,
-        //   datasets: [
-        //     {
-        //       label: 'Cell Diameter',
-        //       fill: false,
-        //       lineTension: 0.1,
-        //       backgroundColor: 'rgba(75,192,192,0.4)',
-        //       borderColor: 'rgba(75,192,192,1)',
-        //       data: cd_data,
-        //     },
-        //     {
-        //       label: 'Total Viable Cells',
-        //       fill: false,
-        //       lineTension: 0.1,
-        //       backgroundColor: 'rgba(153,102,255,0.4)',
-        //       borderColor: 'rgba(153,102,255,1)',
-        //       data: tvc_data,
-        //     },
-        //     {
-        //       label: 'Viable Cell Density',
-        //       fill: false,
-        //       lineTension: 0.1,
-        //       backgroundColor: 'rgba(255,159,64,0.4)',
-        //       borderColor: 'rgba(255,159,64,1)',
-        //       data: vcd_data,
-        //     },
-        //   ],
-        // });
 
         getMeasurements(batchesView.id);
       } else {
@@ -364,7 +338,7 @@ const Batches = () => {
           }
         }
         console.log(tvc_pred)
-        setChartData({
+        setChartDataA({
           datasets: [
             {
               label: 'Predicted TVC',
@@ -380,6 +354,10 @@ const Batches = () => {
               borderColor: 'blue',
               showLine: false // This ensures it's a scatter plot without lines
             },
+          ]
+        });
+        setChartDataB({
+          datasets: [
             {
               label: 'Predicted VCD',
               data: vcd_pred,
@@ -392,20 +370,6 @@ const Batches = () => {
               data: vcd_obs,
               backgroundColor: 'green',
               borderColor: 'green',
-              showLine: false // This ensures it's a scatter plot without lines
-            },
-            {
-              label: 'Predicted CD',
-              data: cd_pred,
-              backgroundColor: 'pink',
-              borderColor: 'pink',
-              showLine: false // This ensures it's a scatter plot without lines
-            },
-            {
-              label: 'Observed CD',
-              data: cd_obs,
-              backgroundColor: 'red',
-              borderColor: 'red',
               showLine: false // This ensures it's a scatter plot without lines
             },
           ]
@@ -511,13 +475,11 @@ const Batches = () => {
             </div>
             <div style={{ paddingLeft: '20px', width: '70%', overflowY: 'auto', height: '85vh' }}>
               <h1 style={{ margin: '0px' }}>Measurements</h1>
-              {/* <div style={{ display: 'flex' }}>
-                <p className='graph-type-btn'>Total Viable Cells</p>
-                <p className='graph-type-btn'>Viable Cell Density</p>
-                <p className='graph-type-btn'>Cell Diameter</p>
-              </div> */}
               <div style={{ width: '85%' }}>
-              <Scatter data={chartData} options={options} width={100} height={50}/>
+              <Scatter data={chartDataA} options={options} width={100} height={50}/>
+              </div>
+              <div style={{ width: '85%' }}>
+              <Scatter data={chartDataB} options={options} width={100} height={50}/>
               </div>
               <div style={{ display: 'flex', width: '80%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
                 <p style={{ margin: '0px', width: '100px', fontWeight: 'bold' }}>Date</p>

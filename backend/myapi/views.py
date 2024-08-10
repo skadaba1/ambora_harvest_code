@@ -197,12 +197,11 @@ class HoeffdingStateEstimator():
             out[model_name] = value
         return out
     
-    def sim_growth(self, current_state, forward_time_inc, days_forward, starting_date): # forward_time_inc in hours
-        increments = int(days_forward * 24 / forward_time_inc)
+    def sim_growth(self, current_state, forward_times, starting_date): # forward_time_inc in hours
         states_dict = defaultdict(list)
-        for i in range(increments):
-            current_date = str(starting_date + timedelta(days=i*forward_time_inc/24))
-            next_state = self.forecast_next_state(current_state, forward_time_inc*(i+1))
+        for forward_time in forward_times:
+            current_date = str(starting_date + timedelta(days=int(forward_time/24)))
+            next_state = self.forecast_next_state(current_state, forward_time)
             states_dict[current_date] = next_state
             current_state = next_state
         return states_dict
@@ -247,16 +246,28 @@ class HoeffdingStateEstimator():
         self.obs_df.reset_index(drop=True, inplace=True)
 
 def sim_growth_for_batch(batch, measurement):
-    measurements = Measurement.objects.filter(batch=batch)
-    last_measurements = measurement
+    
+    last_measurement = measurement
+
     current_state = {
-        'total_viable_cells': float(last_measurements.total_viable_cells), 
-        'viable_cell_density': float(last_measurements.viable_cell_density), 
-        'cell_diameter': float(last_measurements.cell_diameter)
+        'total_viable_cells': float(last_measurement.total_viable_cells), 
+        'viable_cell_density': float(last_measurement.viable_cell_density), 
+        'cell_diameter': float(last_measurement.cell_diameter)
         } 
-    days_forward = 16 - (last_measurements.measurement_date - batch.batch_start_date).days
+
+    # Assuming last_measurements.measurement_date and batch.batch_start_date are datetime objects
+    last_measurement_date = last_measurement.measurement_date
+    batch_start_date = batch.batch_start_date
+
+    # Calculate the starting day
+    days_since_start = (last_measurement_date - batch_start_date).days + 1
+    start_day = 16 - days_since_start
+
+    # Generate the list of days to predict
     forward_time_inc = 24 # predict 24 hours advance at a time
-    states_dict = loader.get("hfe").sim_growth(current_state, forward_time_inc, days_forward, last_measurements.measurement_date)
+    forward_times = [day * forward_time_inc for day in list(range(1, start_day))]
+
+    states_dict = loader.get("hfe").sim_growth(current_state, forward_times, last_measurement.measurement_date)
     margins = loader.get("hfe").get_confidence_intervals()
     return states_dict, margins
 
