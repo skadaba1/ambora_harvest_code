@@ -268,6 +268,49 @@ class LazyLoader:
 
 loader = LazyLoader()
 
+# get correlation between viable cell density and TVC and between cell diameter and TVC as the number of batches increases
+def get_correlations_data():
+    batches = Batch.objects.all().order_by("batch_start_date")
+    
+    current_batch = 1
+    num_batches = []
+    
+    viable_cell_density = []
+    cell_diameter = []
+    total_viable_cells = []
+    
+    correlations_viable_cell_density = []
+    correlations_cell_diameter = []
+    for batch in batches:
+        measurements = Measurement.objects.filter(batch = batch).order_by("measurement_date")
+
+        viable_cell_density_measurement = measurements.filter(viable_cell_density__isnull = False).first()
+        cell_diameter_measurement = measurements.filter(cell_diameter__isnull = False).first()
+        total_viable_cells_measurement = measurements.filter(total_viable_cells__isnull = False).last()
+	
+        if viable_cell_density_measurement:
+            viable_cell_density.append(viable_cell_density_measurement.viable_cell_density)
+        else:
+            viable_cell_density.append(None)
+        if cell_diameter_measurement:
+            cell_diameter.append(cell_diameter_measurement.cell_diameter)
+        else:
+            cell_diameter.append(None)
+        if total_viable_cells_measurement:
+            total_viable_cells.append(total_viable_cells_measurement.total_viable_cells)
+        else:
+            total_viable_cells.append(None)
+	
+        df = pd.DataFrame({"viable_cell_density" : pd.Series(viable_cell_density), "total_viable_cells" : pd.Series(total_viable_cells)}).dropna()
+        correlations_viable_cell_density.append(np.corrcoef(df["viable_cell_density"].values, df["total_viable_cells"].values)[0, 1])
+
+        df = pd.DataFrame({"cell_diameter" : pd.Series(cell_diameter), "total_viable_cells" : pd.Series(total_viable_cells)}).dropna()
+        correlations_cell_diameter.append(np.corrcoef(df["cell_diameter"], df["total_viable_cells"])[0, 1])
+	
+        num_batches.append(current_batch)
+        current_batch += 1
+    return correlations_viable_cell_density, correlations_cell_diameter
+	
 @api_view(['GET'])
 def Batches(request):
     batches = Batch.objects.all()
