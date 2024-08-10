@@ -172,16 +172,20 @@ class HoeffdingStateEstimator():
     
     # online learning
     def update_models(self):  
-        num_observations = self.get_num_observations()
-        if(num_observations > 1):
-            # Train the model
-    
-            current_features = self.obs_df.iloc[num_observations-2][['measurement_date'] + self.state_properties].values
-            forward_time = (datetime.strptime(self.obs_df.iloc[num_observations-1]['measurement_date'], date_format) - datetime.strptime(current_features[0], date_format)).total_seconds() / 3600
-            current_features[0] = forward_time
-            for property_name in self.state_properties:
-                next_property_value = self.obs_df.iloc[num_observations-1][property_name]
-                self.tree_models_dict[property_name].partial_fit([current_features], [next_property_value])
+        for lot in self.obs_df['lot_number'].unique():
+            lot_df = self.obs_df[self.obs_df['lot_number'] == lot]
+            lot_df.sort_values(by=['measurement_date'], inplace=True)
+            num_observations = len(lot_df)
+            if(num_observations > 1):
+                # Train the model
+        
+                current_features = lot_df.iloc[num_observations-2][['measurement_date'] + self.state_properties].values
+                forward_time = (datetime.strptime(lot_df.iloc[num_observations-1]['measurement_date'], date_format) - datetime.strptime(current_features[0], date_format)).total_seconds() / 3600
+                current_features[0] = forward_time
+                for property_name in self.state_properties:
+                    next_property_value = lot_df.iloc[num_observations-1][property_name]
+
+                    self.tree_models_dict[property_name].partial_fit([current_features], [next_property_value])
     
     # Function to forecast the next state
     def forecast_next_state(self, current_features, forward_time):
@@ -198,7 +202,7 @@ class HoeffdingStateEstimator():
         states_dict = defaultdict(list)
         for i in range(increments):
             current_date = str(starting_date + timedelta(days=i*forward_time_inc/24))
-            next_state = self.forecast_next_state(current_state, forward_time_inc)
+            next_state = self.forecast_next_state(current_state, forward_time_inc*(i+1))
             states_dict[current_date] = next_state
             current_state = next_state
         return states_dict
