@@ -46,7 +46,7 @@ const formatDate = (date) => {
 
 const Schedule = ({}) => {
   const [allDates, setAllDates] = useState([]);
-  const [batchData, setBatchData] = useState([]);
+  const [batchData, setBatchData] = useState({});
   const [sortedMonths, setSortedMonths] = useState([]);
   const [monthIndex, setMonthIndex] = useState(0);
   const [numberOfDays, setNumberOfDays] = useState(0);
@@ -91,6 +91,7 @@ const Schedule = ({}) => {
 
       if (response.status === 200) {
         const result = await response.json();
+        console.log(result);
         const startDates = result.map(batch => {
           return new Date(batch.batch_start_date);
         });
@@ -168,7 +169,7 @@ const Schedule = ({}) => {
     </Row>
   );
 
-  const renderRows = () => (batchData[sortedMonths[monthIndex]].sort((a, b) => a[0] - b[0]) || []).map((batch, slotIndex) => (
+  const renderRows = () => (Object.keys(batchData).length > 0 && batchData[sortedMonths[monthIndex]].sort((a, b) => a[0] - b[0]) || []).map((batch, slotIndex) => (
     <>
     <p style={{ whiteSpace: 'nowrap', marginTop: 6, marginBottom: 3, marginLeft: (batch[0] - 1) * 61, fontSize: 12, fontWeight: 'bold' }}>Batch {slotIndex + 1}</p>
     <Row key={slotIndex}>
