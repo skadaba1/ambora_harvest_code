@@ -1,0 +1,14 @@
+.month-arrow {
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  transition: 0.3s;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.month-arrow:hover {
+  background-color: lightgray;
+}

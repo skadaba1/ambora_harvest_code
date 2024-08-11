@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { REACT_APP_API_URL } from "../consts";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
+import './Schedule.css';
 
 const Container = styled.div`
   display: flex;
@@ -25,7 +28,8 @@ const Cell = styled.div`
 
 const HeaderCell = styled(Cell)`
   background-color: #f0f0f0;
-  border: 0.5px solid gray;
+  border: 0.5px solid #ddd;
+  font-size: 14px;
 `;
 
 const DataCell = styled(Cell)`
@@ -37,7 +41,7 @@ const formatDate = (date) => {
   const month = date.getMonth() + 1
   const day = date.getDate()
   const dayOfWeek = days[date.getDay()]
-  return `${dayOfWeek} ${month}/${day}`
+  return `${dayOfWeek} ${day}`
 }
 
 const Schedule = ({}) => {
@@ -96,7 +100,7 @@ const Schedule = ({}) => {
         const groupedDates = startDates.reduce((acc, date) => {
           // Create a Date object that's 10 days after the current date
           const endDate = new Date(date);
-          endDate.setDate(date.getDate() + 11);
+          endDate.setDate(date.getDate() + 10);
           // Create a Date object for the first day of the month
           const monthKey = new Date(date.getFullYear(), date.getMonth(), 1);
           const endMonthKey = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
@@ -119,7 +123,7 @@ const Schedule = ({}) => {
               months.push(endTimeKey);
             }
             // Push the current date into the appropriate array
-            acc[endTimeKey].push([1, endDate.getDate(), 11 - endDate.getDate() + 1]);
+            acc[endTimeKey].push([1, endDate.getDate() + 1, 11 - endDate.getDate()]);
           }
           return acc;
         }, {});
@@ -164,7 +168,7 @@ const Schedule = ({}) => {
     </Row>
   );
 
-  const renderRows = () => (batchData[sortedMonths[monthIndex]] || []).map((batch, slotIndex) => (
+  const renderRows = () => (batchData[sortedMonths[monthIndex]].sort((a, b) => a[0] - b[0]) || []).map((batch, slotIndex) => (
     <>
     <p style={{ whiteSpace: 'nowrap', marginTop: 6, marginBottom: 3, marginLeft: (batch[0] - 1) * 61, fontSize: 12, fontWeight: 'bold' }}>Batch {slotIndex + 1}</p>
     <Row key={slotIndex}>
@@ -203,12 +207,20 @@ const Schedule = ({}) => {
 
   return (
     <div style={{ padding: '3%', flex: 1, overflowY: 'auto' }}>
-      <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px', marginBottom: '20px' }}>Batch Schedule</h1>
-      <h2>{new Date(sortedMonths[monthIndex]).toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
-      <button onClick={() => onPrevMonthClick()}>Previous Month</button>
-      <button onClick={() => onNextMonthClick()}>Next Month</button>
-      {renderHeader()}
-      {renderRows()}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+        <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batch Schedule</h1>
+        <div className='month-arrow' onClick={() => onPrevMonthClick()} style={{ marginRight: '5px' }}>
+          <FontAwesomeIcon icon={faAngleLeft} size='md' color='gray'/>
+        </div>
+        <div className='month-arrow' onClick={() => onNextMonthClick()} style={{ marginRight: '15px' }}>
+          <FontAwesomeIcon icon={faAngleRight} size='md' color='gray'/>
+        </div>
+        <h2 style={{ color: 'gray', fontWeight: 'normal' }}>{new Date(sortedMonths[monthIndex]).toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
+      </div>
+      <div style={{ overflowX: 'auto', paddingBottom: '20px' }}>
+        {renderHeader()}
+        {renderRows()}
+      </div>
     </div>
   );
 };
