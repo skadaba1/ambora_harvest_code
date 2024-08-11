@@ -421,8 +421,8 @@ const Batches = () => {
           </div>
           <div style={{ display: 'flex', width: '95%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
             <p style={{ margin: '0px' }}>Lot Number</p>
-            {/* <p style={{ margin: '0px' }}>Cell Count</p> */}
             <p style={{ margin: '0px' }}>Batch Start Date</p>
+            <p style={{ margin: '0px' }}>Predicted Harvest Date</p>
           </div>
           {batches.map((item, index) => (
             <div
@@ -435,8 +435,8 @@ const Batches = () => {
               style={{ display: 'flex', width: '95%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}
             >
               <p style={{ margin: '0px' }}>{item.lot_number}</p>
-              {/* <p style={{ margin: '0px' }}>{item.total_viable_cells}</p> */}
               <p style={{ margin: '0px' }}>{item.batch_start_date}</p>
+              <p style={{ margin: '0px' }}>{item.harvest_date}</p>
             </div>
           ))}
         </div>

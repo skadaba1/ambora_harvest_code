@@ -81,6 +81,12 @@ def add_measurement_direct(measurement_date, lot_number, total_viable_cells, via
         'cell_diameter': cell_diameter
     })
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
+
+    latest_measurement = Measurement.objects.filter(id=measurement.id, batch=batch).first()
+    if(number_measurements_for_lot > 2):
+        harvest_day = predict_harvest_day(batch, latest_measurement)
+        batch.harvest_date = harvest_day
+        batch.save()
     return {'number_measurements': number_measurements_for_lot}
 
 # Define a function to parse datetime strings
@@ -174,7 +180,7 @@ class HoeffdingStateEstimator():
     def update_models(self):  
         for lot in self.obs_df['lot_number'].unique():
             lot_df = self.obs_df[self.obs_df['lot_number'] == lot]
-            lot_df.sort_values(by=['measurement_date'], inplace=True)
+            lot_df = lot_df.sort_values(by=['measurement_date'])
             num_observations = len(lot_df)
             if(num_observations > 1):
                 # Train the model
@@ -283,6 +289,15 @@ class LazyLoader:
 
 loader = LazyLoader()
 
+def predict_harvest_day(batch, measurement):
+    states_dict, margins = sim_growth_for_batch(batch, measurement)
+    for date in states_dict:
+        if((parse_datetime(date) - batch.batch_start_date).days >= 8):
+            if(states_dict[date]['total_viable_cells'] > 1e9):
+                return date
+    return None # Terminate batch
+
+
 # get correlation between viable cell density and TVC and between cell diameter and TVC as the number of batches increases
 def get_correlations_data():
     batches = Batch.objects.all().order_by("batch_start_date")
@@ -375,6 +390,9 @@ def add_measurement(request):
         'viable_cell_density':data_dict['viableCellDensity'],
         'cell_diameter':data_dict['cellDiameter']})
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
+    # if(number_measurements_for_lot > 5):
+    #     harvest_day = predict_harvest_day(batch, measurement)
+    #     print("Harvest Day: ", harvest_day)
     return Response({'number_measurements': number_measurements_for_lot})
 
 @api_view(['POST'])
