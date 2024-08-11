@@ -78,30 +78,48 @@ const Batches = () => {
     labels: [],
     datasets: [
       {
-        label: 'Measurement Value 1',
-        fill: false,
-        lineTension: 0.1,
-        backgroundColor: 'rgba(75,192,192,0.4)',
-        borderColor: 'rgba(75,192,192,1)',
-        data: [],
+        label: 'Predicted TVC',
+        data: {},
+        backgroundColor: 'lightblue',
+        borderColor: 'lightblue',
+        showLine: false // This ensures it's a scatter plot without lines
       },
       {
-        label: 'Measurement Value 2',
-        fill: false,
-        lineTension: 0.1,
-        backgroundColor: 'rgba(153,102,255,0.4)',
-        borderColor: 'rgba(153,102,255,1)',
-        data: [],
+        label: 'Observed TVC',
+        data: {},
+        backgroundColor: 'blue',
+        borderColor: 'blue',
+        showLine: false // This ensures it's a scatter plot without lines
       },
       {
-        label: 'Measurement Value 3',
-        fill: false,
-        lineTension: 0.1,
-        backgroundColor: 'rgba(255,159,64,0.4)',
-        borderColor: 'rgba(255,159,64,1)',
-        data: [],
+        label: 'Predicted VCD',
+        data: {},
+        backgroundColor: 'lightgreen',
+        borderColor: 'lightgreen',
+        showLine: false // This ensures it's a scatter plot without lines
       },
-    ],
+      {
+        label: 'Observed VCD',
+        data: {},
+        backgroundColor: 'green',
+        borderColor: 'green',
+        showLine: false // This ensures it's a scatter plot without lines
+      },
+      {
+        label: 'Predicted CD',
+        data: {},
+        backgroundColor: 'pink',
+        borderColor: 'pink',
+        showLine: false // This ensures it's a scatter plot without lines
+      },
+      {
+        label: 'Observed CD',
+        data: {},
+        backgroundColor: 'red',
+        borderColor: 'red',
+        showLine: false // This ensures it's a scatter plot without lines
+      },
+    ]
   });
   const lotNumberRef = useRef(null);
   const batchStartDateRef = useRef(null);
@@ -254,6 +272,7 @@ const Batches = () => {
         const result = await response.json();
         console.log(result);
         setMeasurements(result);
+        handleMeasurementClick(batchId, result[0].id);
       } else {
         const errorData = await response.json();
         console.error('Error fetching measurements:', errorData.error);
@@ -447,7 +466,7 @@ const Batches = () => {
           </div>
           <div style={{ display: 'flex' }}>
             <div style={{ width: '30%', borderRight: '1px solid lightgray', paddingRight: '20px' }}>
-              <h1 style={{ margin: '0px' }}> Batch {batchesView.lotNumber} </h1>
+              <h1 style={{ margin: '0px' }}> Lot {batchesView.lotNumber} </h1>
               <div style={{ marginTop: '30px' }}>
                 <label style={{ fontWeight: 'bold' }}>Measurement Date</label>
                 <input className='setting-input' type="datetime-local" ref={newMeasurementDateRef} />
