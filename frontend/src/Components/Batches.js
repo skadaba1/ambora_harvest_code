@@ -420,9 +420,9 @@ const Batches = () => {
             <FontAwesomeIcon icon={faTrash} onClick={deleteAllBatches} size='2x' style={{ marginLeft: '20px', cursor: 'pointer'}} />
           </div>
           <div style={{ display: 'flex', width: '95%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
-            <p style={{ margin: '0px' }}>Lot Number</p>
-            <p style={{ margin: '0px' }}>Batch Start Date</p>
-            <p style={{ margin: '0px' }}>Predicted Harvest Date</p>
+            <p style={{ margin: '0px', width: '130px' }}>Lot Number</p>
+            <p style={{ margin: '0px', width: '130px' }}>Batch Start Date</p>
+            <p style={{ margin: '0px', width: '180px' }}>Predicted Harvest Date</p>
           </div>
           {batches.map((item, index) => (
             <div
@@ -434,9 +434,19 @@ const Batches = () => {
               }}
               style={{ display: 'flex', width: '95%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}
             >
-              <p style={{ margin: '0px' }}>{item.lot_number}</p>
-              <p style={{ margin: '0px' }}>{item.batch_start_date}</p>
-              <p style={{ margin: '0px' }}>{item.harvest_date}</p>
+              <p style={{ margin: '0px', width: '130px' }}>{item.lot_number}</p>
+              <div style={{ width: '130px' }}>
+                <p style={{ margin: '0px' }}>{item.batch_start_date.split('T')[0]}</p>
+                <p style={{ margin: '0px', color: 'gray', fontSize: '12px', }}>{item.batch_start_date.split('T')[1]}</p>
+              </div>
+              { !item.harvest_date ? (
+                <p style={{ margin: '0px', width: '180px' }}>-</p>
+              ) : (
+                <div style={{ width: '180px' }}>
+                  <p style={{ margin: '0px', width: '100px' }}>{item.harvest_date.split('T')[0]}</p>
+                  <p style={{ margin: '0px', color: 'gray', fontSize: '12px' }}>{item.harvest_date.split('T')[1]}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -466,7 +476,7 @@ const Batches = () => {
           </div>
           <div style={{ display: 'flex' }}>
             <div style={{ width: '30%', borderRight: '1px solid lightgray', paddingRight: '20px' }}>
-              <h1 style={{ margin: '0px' }}> Lot {batchesView.lotNumber} </h1>
+              <h1 style={{ margin: '0px' }}> Lot #{batchesView.lotNumber} </h1>
               <div style={{ marginTop: '30px' }}>
                 <label style={{ fontWeight: 'bold' }}>Measurement Date</label>
                 <input className='setting-input' type="datetime-local" ref={newMeasurementDateRef} />
@@ -493,12 +503,12 @@ const Batches = () => {
               <p className='delete-batch-btn' onClick={() => onDeleteBatchClick()} style={{ marginTop: '30px' }}> Delete Batch </p>
             </div>
             <div style={{ paddingLeft: '20px', width: '70%', overflowY: 'auto', height: '85vh' }}>
-              <h1 style={{ margin: '0px' }}>Measurements</h1>
+              <h1 style={{ margin: '0px', marginBottom: '20px' }}>Measurements</h1>
               <div style={{ width: '85%' }}>
-              <Scatter data={chartDataA} options={options} width={100} height={50}/>
+                <Scatter data={chartDataA} options={options} width={100} height={50}/>
               </div>
               <div style={{ width: '85%' }}>
-              <Scatter data={chartDataB} options={options} width={100} height={50}/>
+                <Scatter data={chartDataB} options={options} width={100} height={50}/>
               </div>
               <div style={{ display: 'flex', width: '80%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
                 <p style={{ margin: '0px', width: '100px', fontWeight: 'bold' }}>Date</p>
