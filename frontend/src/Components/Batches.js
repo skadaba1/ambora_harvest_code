@@ -420,6 +420,9 @@ const Batches = () => {
             </button>
             <FontAwesomeIcon icon={faTrash} onClick={deleteAllBatches} size='2x' style={{ marginLeft: '20px', cursor: 'pointer'}} />
           </div>
+          <div>
+            <Schedule />
+          </div>
           <div style={{ display: 'flex', width: '95%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
             <p style={{ margin: '0px', width: '130px' }}>Lot Number</p>
             <p style={{ margin: '0px', width: '130px' }}>Batch Start Date</p>
@@ -450,9 +453,6 @@ const Batches = () => {
               )}
             </div>
           ))}
-          <div>
-            <Schedule />
-          </div>
         </div>
       ) : batchesView === 'addBatch' ? (
         <div style={{ paddingLeft: '3%', paddingTop: '3%' }}>
