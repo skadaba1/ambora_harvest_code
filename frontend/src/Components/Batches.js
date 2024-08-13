@@ -407,9 +407,10 @@ const Batches = () => {
     <>
       {batchesView === 'batches' ? (
         <div style={{ padding: '3%', flex: 1, overflowY: 'auto' }}>
-          <div style={{ display: 'flex', marginBottom: '20px' }}>
-            <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batches</h1>
-            <button className='add-batch-btn' style={{ display: 'flex', alignItems: 'center' }} onClick={() => setBatchesView('addBatch')}>
+          <Schedule />
+          <div style={{ display: 'flex', marginTop: '20px', marginBottom: '20px', alignItems: 'center' }}>
+            <h2 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Current Batches</h2>
+            <button className='add-batch-btn' style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }} onClick={() => setBatchesView('addBatch')}>
               <FontAwesomeIcon icon={faPlus} />
               <p style={{ margin: '0px', marginLeft: '5px', fontWeight: 'bold' }}>Add Batch</p>
             </button>
@@ -418,10 +419,7 @@ const Batches = () => {
               <p style={{ margin: '0px', marginLeft: '5px', fontWeight: 'bold' }}>Upload File</p>
               <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} style={{ position: 'absolute', top: '0', left: '0', opacity: '0', width: '100%', height: '100%', cursor: 'pointer' }} />
             </button>
-            <FontAwesomeIcon icon={faTrash} onClick={deleteAllBatches} size='2x' style={{ marginLeft: '20px', cursor: 'pointer'}} />
-          </div>
-          <div>
-            <Schedule />
+            <FontAwesomeIcon icon={faTrash} onClick={deleteAllBatches} size='lg' style={{ marginLeft: '20px', cursor: 'pointer'}} />
           </div>
           <div style={{ display: 'flex', width: '95%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
             <p style={{ margin: '0px', width: '130px' }}>Lot Number</p>

@@ -92,18 +92,17 @@ const Schedule = ({}) => {
       if (response.status === 200) {
         const result = await response.json();
         console.log(result);
-        const startDates = result.map(batch => {
-          return new Date(batch.batch_start_date);
+        const resultData = result.map(batch => {
+          return { date: new Date(batch.batch_start_date), lotNumber: batch.lot_number };
         });
-        console.log(startDates)
         const months = [];
 
-        const groupedDates = startDates.reduce((acc, date) => {
+        const groupedDates = resultData.reduce((acc, item) => {
           // Create a Date object that's 10 days after the current date
-          const endDate = new Date(date);
-          endDate.setDate(date.getDate() + 10);
+          const endDate = new Date(item.date);
+          endDate.setDate(item.date.getDate() + 10);
           // Create a Date object for the first day of the month
-          const monthKey = new Date(date.getFullYear(), date.getMonth(), 1);
+          const monthKey = new Date(item.date.getFullYear(), item.date.getMonth(), 1);
           const endMonthKey = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
           // Convert the Date object to its time value for consistent key comparison
           const timeKey = monthKey.getTime();
@@ -114,7 +113,7 @@ const Schedule = ({}) => {
             months.push(timeKey);
           }
           // Push the current date into the appropriate array
-          acc[timeKey].push([date.getDate(), date.getDate() + 11, 0]);
+          acc[timeKey].push([item.date.getDate(), item.date.getDate() + 11, 0, item.lotNumber]);
 
           if (timeKey !== endTimeKey) {
             console.log("RAN")
@@ -124,14 +123,11 @@ const Schedule = ({}) => {
               months.push(endTimeKey);
             }
             // Push the current date into the appropriate array
-            acc[endTimeKey].push([1, endDate.getDate() + 1, 11 - endDate.getDate()]);
+            acc[endTimeKey].push([1, endDate.getDate() + 1, 11 - endDate.getDate(), item.lotNumber]);
           }
           return acc;
         }, {});
         months.sort()
-        console.log(groupedDates)
-
-        console.log(months)
 
         setSortedMonths(months);
         setBatchData(groupedDates);
@@ -171,7 +167,7 @@ const Schedule = ({}) => {
 
   const renderRows = () => (Object.keys(batchData).length > 0 && batchData[sortedMonths[monthIndex]].sort((a, b) => a[0] - b[0]) || []).map((batch, slotIndex) => (
     <>
-    <p style={{ whiteSpace: 'nowrap', marginTop: 6, marginBottom: 3, marginLeft: (batch[0] - 1) * 61, fontSize: 12, fontWeight: 'bold' }}>Batch {slotIndex + 1}</p>
+    <p style={{ whiteSpace: 'nowrap', marginTop: 6, marginBottom: 3, marginLeft: (batch[0] - 1) * 61, fontSize: 12, fontWeight: 'bold' }}>Lot {batch[3]}</p>
     <Row key={slotIndex}>
       {Array.from({ length: numberOfDays }, (_, dayIndex) => {
         const isInBatchRange = dayIndex + 1 >= batch[0] && dayIndex + 1 < batch[1];
@@ -207,9 +203,9 @@ const Schedule = ({}) => {
   ));
 
   return (
-    <div style={{ padding: '3%', flex: 1, overflowY: 'auto' }}>
+    <div style={{ flex: 1, overflowY: 'auto', borderBottom: '1px solid lightgray' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-        {/* <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batch Schedule</h1> */}
+        <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batches</h1>
         <div className='month-arrow' onClick={() => onPrevMonthClick()} style={{ marginRight: '5px' }}>
           <FontAwesomeIcon icon={faAngleLeft} size='md' color='gray'/>
         </div>
