@@ -209,7 +209,7 @@ const Schedule = ({}) => {
   return (
     <div style={{ padding: '3%', flex: 1, overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-        <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batch Schedule</h1>
+        {/* <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batch Schedule</h1> */}
         <div className='month-arrow' onClick={() => onPrevMonthClick()} style={{ marginRight: '5px' }}>
           <FontAwesomeIcon icon={faAngleLeft} size='md' color='gray'/>
         </div>

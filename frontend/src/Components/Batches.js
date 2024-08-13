@@ -17,6 +17,7 @@ import {
   TimeScale
 } from 'chart.js';
 import 'chartjs-adapter-date-fns'; // Import the date adapter
+import Schedule from './Schedule';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
 
@@ -449,6 +450,9 @@ const Batches = () => {
               )}
             </div>
           ))}
+          <div>
+            <Schedule />
+          </div>
         </div>
       ) : batchesView === 'addBatch' ? (
         <div style={{ paddingLeft: '3%', paddingTop: '3%' }}>
