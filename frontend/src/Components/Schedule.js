@@ -52,22 +52,17 @@ const Schedule = ({}) => {
   const [numberOfDays, setNumberOfDays] = useState(0);
 
   const getAllDates = (startDate) => {
-    console.log(startDate)
     // Convert timeKey back to a Date object
     const monthStartDate = new Date(startDate);
-    console.log(monthStartDate)
     // Get the year and month from the Date object
     const year = monthStartDate.getFullYear();
     const month = monthStartDate.getMonth();
-    console.log(year, month)
     // Create a Date object for the first day of the next month
     const nextMonthStartDate = new Date(year, month + 1, 1);
-    console.log(nextMonthStartDate)
     // Subtract one day to get the last day of the current month
     const lastDayOfMonth = new Date(nextMonthStartDate - 1);
     // Get the day number, which is the number of days in the month
     const daysInMonth = lastDayOfMonth.getDate();
-    console.log(daysInMonth)
     setNumberOfDays(daysInMonth)
 
     const dates = []
@@ -76,7 +71,6 @@ const Schedule = ({}) => {
       nextDate.setDate(monthStartDate.getDate() + i)
       dates.push(formatDate(nextDate))
     }
-    console.log(dates)
     return dates
   }
 
@@ -93,14 +87,21 @@ const Schedule = ({}) => {
         const result = await response.json();
         console.log(result);
         const resultData = result.map(batch => {
-          return { date: new Date(batch.batch_start_date), lotNumber: batch.lot_number };
+          console.log(batch)
+          console.log(new Date(batch.batch_start_date))
+          console.log(new Date(batch.harvest_date))
+          return { date: new Date(batch.batch_start_date), lotNumber: batch.lot_number, harvestDate: batch.harvest_date };
         });
         const months = [];
 
         const groupedDates = resultData.reduce((acc, item) => {
           // Create a Date object that's 10 days after the current date
-          const endDate = new Date(item.date);
-          endDate.setDate(item.date.getDate() + 10);
+          let endDate = new Date(item.date);
+          if (item.harvestDate) {
+            endDate = new Date(item.harvestDate);
+          } else {
+            endDate.setDate(item.date.getDate() + 10);
+          }
           // Create a Date object for the first day of the month
           const monthKey = new Date(item.date.getFullYear(), item.date.getMonth(), 1);
           const endMonthKey = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
@@ -113,7 +114,15 @@ const Schedule = ({}) => {
             months.push(timeKey);
           }
           // Push the current date into the appropriate array
-          acc[timeKey].push([item.date.getDate(), item.date.getDate() + 11, 0, item.lotNumber]);
+          if (item.harvestDate) {
+            let arrEndDate = endDate.getDate() + 1;
+            if (item.date.getDate() > endDate.getDate()) {
+              arrEndDate = 32;
+            }
+            acc[timeKey].push([item.date.getDate(), arrEndDate, 0, item.lotNumber]);
+          } else {
+            acc[timeKey].push([item.date.getDate(), item.date.getDate() + 11, 0, item.lotNumber]);
+          }
 
           if (timeKey !== endTimeKey) {
             console.log("RAN")
@@ -123,11 +132,28 @@ const Schedule = ({}) => {
               months.push(endTimeKey);
             }
             // Push the current date into the appropriate array
-            acc[endTimeKey].push([1, endDate.getDate() + 1, 11 - endDate.getDate(), item.lotNumber]);
+            if (item.harvestDate) {
+              let batchLen = (new Date(item.harvestDate).setHours(0, 0, 0, 0) - new Date(item.date).setHours(0, 0, 0, 0)) / (1000 * 3600 * 24) + 1;
+              // console.log(item.lotNumber)
+              // console.log(new Date(item.harvestDate))
+              // console.log(new Date(item.date))
+              // console.log(new Date(item.harvestDate).setHours(0, 0, 0, 0) - new Date(item.date).setHours(0, 0, 0, 0))
+              // console.log((new Date(item.harvestDate).setHours(0, 0, 0, 0) - new Date(item.date).setHours(0, 0, 0, 0)) / (1000 * 3600 * 24))
+              acc[endTimeKey].push([
+                1, 
+                endDate.getDate() + 1, 
+                Math.floor(batchLen - endDate.getDate()), 
+                item.lotNumber
+              ]);
+            } else {
+              acc[endTimeKey].push([1, endDate.getDate() + 1, 11 - endDate.getDate(), item.lotNumber]);
+            }
           }
           return acc;
         }, {});
         months.sort()
+
+        console.log(groupedDates);
 
         setSortedMonths(months);
         setBatchData(groupedDates);
@@ -192,6 +218,12 @@ const Schedule = ({}) => {
             : 'white';
         }
 
+        {/* if (batch[3] === '31423002') {
+          console.log(dayIndex)
+          console.log(batch)
+          console.log(color)
+        } */}
+
         return (
           <DataCell key={dayIndex + 1} color={color} style={{ border: isInBatchRange ? '0.5px solid gray' : '0.5px solid lightgray' }}>
             {isInBatchRange ? dayIndex + 1 - batch[0] + batch[2] : ''}
@@ -205,7 +237,7 @@ const Schedule = ({}) => {
   return (
     <div style={{ flex: 1, overflowY: 'auto', borderBottom: '1px solid lightgray' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-        <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batches</h1>
+        <h1 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batches Schedule</h1>
         <div className='month-arrow' onClick={() => onPrevMonthClick()} style={{ marginRight: '5px' }}>
           <FontAwesomeIcon icon={faAngleLeft} size='md' color='gray'/>
         </div>

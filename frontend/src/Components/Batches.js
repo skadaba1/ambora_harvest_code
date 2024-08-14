@@ -409,7 +409,7 @@ const Batches = () => {
         <div style={{ padding: '3%', flex: 1, overflowY: 'auto' }}>
           <Schedule />
           <div style={{ display: 'flex', marginTop: '20px', marginBottom: '20px', alignItems: 'center' }}>
-            <h2 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Current Batches</h2>
+            <h2 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batches List</h2>
             <button className='add-batch-btn' style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }} onClick={() => setBatchesView('addBatch')}>
               <FontAwesomeIcon icon={faPlus} />
               <p style={{ margin: '0px', marginLeft: '5px', fontWeight: 'bold' }}>Add Batch</p>
