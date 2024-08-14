@@ -429,10 +429,10 @@ const Batches = () => {
             <FontAwesomeIcon icon={faTrash} onClick={deleteAllBatches} size='lg' style={{ marginLeft: '20px', cursor: 'pointer'}} />
           </div>
           <div style={{ display: 'flex', width: '95%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
-            <p style={{ margin: '0px', width: '50px', display: 'flex', justifyContent: 'center' }}>Status</p>
-            <p style={{ margin: '0px', width: '130px' }}>Lot Number</p>
-            <p style={{ margin: '0px', width: '130px' }}>Batch Start Date</p>
-            <p style={{ margin: '0px', width: '180px' }}>Predicted Harvest Date</p>
+            <p style={{ margin: '0px', width: '50px', display: 'flex', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px' }}>Status</p>
+            <p style={{ margin: '0px', width: '130px', fontWeight: 'bold', fontSize: '16px' }}>Lot Number</p>
+            <p style={{ margin: '0px', width: '130px', fontWeight: 'bold', fontSize: '16px' }}>Batch Start Date</p>
+            <p style={{ margin: '0px', width: '200px', fontWeight: 'bold', fontSize: '16px' }}>Predicted Harvest Date</p>
           </div>
           {batches.map((item, index) => (
             <div
@@ -447,15 +447,15 @@ const Batches = () => {
               <p style={{ margin: '0px', width: '50px', alignItems: 'center', display: 'flex', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
                 { index < statusColors.length ? <FontAwesomeIcon icon={faCircle} color={statusColors[index]} size='lg'/> : 'Done' }
               </p>
-              <p style={{ margin: '0px', width: '130px' }}>{item.lot_number}</p>
+              <p style={{ margin: '0px', width: '130px', fontWeight: 'bold', fontSize: '14px' }}>{item.lot_number}</p>
               <div style={{ width: '130px' }}>
                 <p style={{ margin: '0px' }}>{item.batch_start_date.split('T')[0]}</p>
                 <p style={{ margin: '0px', color: 'gray', fontSize: '12px', }}>{item.batch_start_date.split('T')[1]}</p>
               </div>
               { !item.harvest_date ? (
-                <p style={{ margin: '0px', width: '180px' }}>-</p>
+                <p style={{ margin: '0px', width: '200px' }}>-</p>
               ) : (
-                <div style={{ width: '180px' }}>
+                <div style={{ width: '200px' }}>
                   <p style={{ margin: '0px', width: '100px' }}>{item.harvest_date.split('T')[0]}</p>
                   <p style={{ margin: '0px', color: 'gray', fontSize: '12px' }}>{item.harvest_date.split('T')[1]}</p>
                 </div>
