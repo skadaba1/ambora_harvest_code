@@ -1,7 +1,7 @@
 import './Batches.css'
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faArrowLeft, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faArrowLeft, faTrash, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { REACT_APP_API_URL } from "../consts";
 import { Scatter } from 'react-chartjs-2';
 import { addDays, format, parseISO } from 'date-fns';
@@ -41,6 +41,13 @@ const options = {
     }
   }
 };
+
+const statusColors = [
+  '#ff0f0f',
+  '#eed202',
+  '#4CBB17',
+  '#4CBB17',
+]
 
 const Batches = () => {
   const [batchesView, setBatchesView] = useState('batches');
@@ -422,6 +429,7 @@ const Batches = () => {
             <FontAwesomeIcon icon={faTrash} onClick={deleteAllBatches} size='lg' style={{ marginLeft: '20px', cursor: 'pointer'}} />
           </div>
           <div style={{ display: 'flex', width: '95%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
+            <p style={{ margin: '0px', width: '50px', display: 'flex', justifyContent: 'center' }}>Status</p>
             <p style={{ margin: '0px', width: '130px' }}>Lot Number</p>
             <p style={{ margin: '0px', width: '130px' }}>Batch Start Date</p>
             <p style={{ margin: '0px', width: '180px' }}>Predicted Harvest Date</p>
@@ -436,6 +444,9 @@ const Batches = () => {
               }}
               style={{ display: 'flex', width: '95%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}
             >
+              <p style={{ margin: '0px', width: '50px', alignItems: 'center', display: 'flex', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
+                { index < statusColors.length ? <FontAwesomeIcon icon={faCircle} color={statusColors[index]} size='lg'/> : 'Done' }
+              </p>
               <p style={{ margin: '0px', width: '130px' }}>{item.lot_number}</p>
               <div style={{ width: '130px' }}>
                 <p style={{ margin: '0px' }}>{item.batch_start_date.split('T')[0]}</p>
