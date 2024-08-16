@@ -1,6 +1,6 @@
 import './Sidebar.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faVial, faAtom, faUser, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faVial, faAtom, faUser, faGear, faChartLine } from '@fortawesome/free-solid-svg-icons';
 
 const Sidebar = ({ setAppView }) => {
 
@@ -12,6 +12,10 @@ const Sidebar = ({ setAppView }) => {
         Batches
       </a>
       {/* <a className='side-btn' onClick={() => setAppView('schedule')}>Schedule</a> */}
+      <a className='side-btn'>
+        <FontAwesomeIcon icon={faChartLine} style={{ marginRight: '20px' }} />
+        Trends
+      </a>
       <a className='side-btn' onClick={() => setAppView('simulation')}>
         <FontAwesomeIcon icon={faAtom} style={{ marginRight: '20px' }} />
         Simulation

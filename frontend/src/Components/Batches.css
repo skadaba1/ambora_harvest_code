@@ -21,25 +21,6 @@
   color: gray;
 }
 
-.batch-submit-btn {
-  background-color: black;
-  border: none;
-  color: white;
-  font-weight: bold;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: 0.5s;
-  border: 1px solid black;
-}
-
-.batch-submit-btn:hover {
-  background-color: white;
-  color: black;
-  border: 1px solid black;
-}
-
 .batches-row {
   background: #f5f5f5;
   transition: 0.3s;
@@ -48,18 +29,6 @@
 
 .batches-row:hover {
   background: lightgray;
-}
-
-.delete-batch-btn {
-  color: red;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s
-}
-
-.delete-batch-btn:hover {
-  /* color: rgb(189, 0, 0); */
-  color: darkred;
 }
 
 .graph-type-btn {

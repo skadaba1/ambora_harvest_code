@@ -1,0 +1,47 @@
+.batch-btn {
+  border: none;
+  font-weight: bold;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: 0.5s;
+  border: 1px solid black;
+  width: 70%;
+}
+
+.batch-btn.harvest {
+  color: green;
+  border: 1px solid green;
+}
+
+.batch-btn.harvest:hover {
+  background-color: green;
+}
+
+.batch-btn.terminate {
+  color: red;
+  border: 1px solid red;
+}
+
+.batch-btn.terminate:hover {
+  background-color: red;
+}
+
+.batch-btn:hover {
+  background-color: black;
+  color: white;
+}
+
+.delete-batch-btn {
+  color: rgb(81, 81, 81);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: 0.3s
+}
+
+.delete-batch-btn:hover {
+  /* color: rgb(189, 0, 0); */
+  color: rgb(42, 42, 42);
+}
