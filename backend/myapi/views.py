@@ -467,3 +467,14 @@ def sim_growth(request):
 
     return Response({'error': 'Invalid request method'}, status=405)
 
+@api_view(['POST'])
+def update_batch_status(request):
+    lot_id = request.data['lotId']
+    new_status = request.data['status']
+    batch = get_object_or_404(Batch, id=lot_id)
+    batch.status = new_status
+    batch.save()
+
+    return Response({'message': 'Batch status updated successfully'})
+
+

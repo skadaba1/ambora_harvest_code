@@ -3,6 +3,7 @@ import Sidebar from './Sidebar';
 import Simulation from './Simulation';
 import Batches from './Batches';
 import Schedule from './Schedule';
+import Trends from './Trends';
 import { useState } from 'react';
 
 function Home() {
@@ -16,7 +17,7 @@ function Home() {
       ) : appView === 'batches' ? (
         <Batches />
       ) : (
-        <Schedule />
+        <Trends />
       )}
     </div>
   );

@@ -104,6 +104,24 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
     }
   }
 
+  const updateBatchStatus = async (newStatus) => {
+    console.log("harvest");
+    try {
+      const response = await fetch(REACT_APP_API_URL + 'api/update-batch-status/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lotId: batchesView.id,
+          status: newStatus
+        }),
+      });
+    } catch (error) {
+      console.error('Error deleting batch:', error);
+    }
+  }
+
   return (
     <div style={{ paddingLeft: '3%', paddingTop: '3%', flex: 1 }}>
       <div style={{ display: 'flex', marginBottom: '20px' }}>
@@ -121,11 +139,11 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
               <FontAwesomeIcon icon={faPlus} style={{ marginRight: '10px' }}/>
               Add Measurement
             </h3>
-            <h3 className='batch-btn harvest' onClick={() => {}} style={{ marginTop: '10px' }} >
+            <h3 className='batch-btn harvest' onClick={() => updateBatchStatus('Harvested')} style={{ marginTop: '10px' }} >
               <FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: '10px' }}/>
               Harvest Batch
             </h3>
-            <h3 className='batch-btn terminate' onClick={() => {}} style={{ marginTop: '10px' }}>
+            <h3 className='batch-btn terminate' onClick={() => updateBatchStatus('Terminated')} style={{ marginTop: '10px' }}>
               <FontAwesomeIcon icon={faCircleXmark} style={{ marginRight: '10px' }}/>
               Terminate Batch
             </h3>

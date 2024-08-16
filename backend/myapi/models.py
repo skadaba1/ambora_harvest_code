@@ -5,8 +5,7 @@ class Batch(models.Model):
     lot_number = models.CharField(max_length=100)
     batch_start_date = models.DateTimeField(null=True, blank=True)
     harvest_date = models.DateTimeField(null=True, blank=True)
-    # viable_cell_density = models.FloatField(null=True, blank=True)
-    # cell_diameter = models.FloatField(null=True, blank=True)
+    status = models.CharField(max_length=100, null=True, blank=True, default='Ongoing')
 
     def __str__(self):
         return self.lot_number

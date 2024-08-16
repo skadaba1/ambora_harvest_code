@@ -182,7 +182,6 @@ const Batches = () => {
 
       if (response.status === 200) {
         const result = await response.json();
-        console.log(result);
         setMeasurements(result);
         handleMeasurementClick(batchId, result[0].id);
       } else {
@@ -219,7 +218,6 @@ const Batches = () => {
   }
 
   const handleMeasurementClick = async (batchId, measurementId) => {
-    console.log('handleMeasurementClick:', batchId, measurementId);
     try {
       const response = await fetch(REACT_APP_API_URL + 'api/sim-growth/', {
         method: 'POST',
@@ -234,7 +232,6 @@ const Batches = () => {
   
       if (response.status === 200) {
         const result = await response.json();
-        console.log('API call successful:', result);
         // Handle the result as needed
         let labels = []
         let tvc_pred = []
@@ -268,7 +265,6 @@ const Batches = () => {
             cd_obs.push({ x: date, y: observedCd });
           }
         }
-        console.log(tvc_pred)
         setChartDataA({
           datasets: [
             {

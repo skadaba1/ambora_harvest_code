@@ -85,11 +85,7 @@ const Schedule = ({}) => {
 
       if (response.status === 200) {
         const result = await response.json();
-        console.log(result);
         const resultData = result.map(batch => {
-          console.log(batch)
-          console.log(new Date(batch.batch_start_date))
-          console.log(new Date(batch.harvest_date))
           return { date: new Date(batch.batch_start_date), lotNumber: batch.lot_number, harvestDate: batch.harvest_date };
         });
         const months = [];
@@ -125,7 +121,6 @@ const Schedule = ({}) => {
           }
 
           if (timeKey !== endTimeKey) {
-            console.log("RAN")
             // If the key doesn't exist in the accumulator, create an empty array
             if (!acc[endTimeKey]) {
               acc[endTimeKey] = [];
@@ -134,11 +129,6 @@ const Schedule = ({}) => {
             // Push the current date into the appropriate array
             if (item.harvestDate) {
               let batchLen = (new Date(item.harvestDate).setHours(0, 0, 0, 0) - new Date(item.date).setHours(0, 0, 0, 0)) / (1000 * 3600 * 24) + 1;
-              // console.log(item.lotNumber)
-              // console.log(new Date(item.harvestDate))
-              // console.log(new Date(item.date))
-              // console.log(new Date(item.harvestDate).setHours(0, 0, 0, 0) - new Date(item.date).setHours(0, 0, 0, 0))
-              // console.log((new Date(item.harvestDate).setHours(0, 0, 0, 0) - new Date(item.date).setHours(0, 0, 0, 0)) / (1000 * 3600 * 24))
               acc[endTimeKey].push([
                 1, 
                 endDate.getDate() + 1, 
@@ -152,8 +142,6 @@ const Schedule = ({}) => {
           return acc;
         }, {});
         months.sort()
-
-        console.log(groupedDates);
 
         setSortedMonths(months);
         setBatchData(groupedDates);
@@ -217,12 +205,6 @@ const Schedule = ({}) => {
             ? 'lightgreen'
             : 'white';
         }
-
-        {/* if (batch[3] === '31423002') {
-          console.log(dayIndex)
-          console.log(batch)
-          console.log(color)
-        } */}
 
         return (
           <DataCell key={dayIndex + 1} color={color} style={{ border: isInBatchRange ? '0.5px solid gray' : '0.5px solid lightgray' }}>

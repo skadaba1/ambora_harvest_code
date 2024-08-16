@@ -12,7 +12,7 @@ const Sidebar = ({ setAppView }) => {
         Batches
       </a>
       {/* <a className='side-btn' onClick={() => setAppView('schedule')}>Schedule</a> */}
-      <a className='side-btn'>
+      <a className='side-btn' onClick={() => setAppView('trends')}>
         <FontAwesomeIcon icon={faChartLine} style={{ marginRight: '20px' }} />
         Trends
       </a>
