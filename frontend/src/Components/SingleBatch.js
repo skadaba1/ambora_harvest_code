@@ -48,6 +48,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
   const newCellDiameterRef = useRef(null);
   const newProcessTimeRef = useRef(null);
   const [singleBatchView, setSingleBatchView] = useState('buttons');
+  const [hoveredMeasurement, setHoveredMeasurement] = useState(null);
 
   const onAddMeasurementClick = async () => {
     try {
@@ -189,17 +190,18 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
           <div style={{ width: '85%' }}>
             <Scatter data={chartDataB} options={options} width={100} height={50}/>
           </div>
-          <div style={{ display: 'flex', width: '80%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', width: "80%", paddingTop : "20px", paddingBottom : "20px", paddingLeft: '20px', paddingRight : "50px", borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
             <p style={{ margin: '0px', width: '100px', fontWeight: 'bold' }}>Date</p>
             <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>TVC</p>
             <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>VCD</p>
             <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>CD</p>
+            <p style = {{ margin : "0px", width : "75px", fontWeight : "bold" }}> Phenotyping </p>
           </div>
           {measurements.map((item, index) => (
         <div
           key={index}
           className='measurement-row'
-          style={{ display: 'flex', width: '80%', padding: '20px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', borderBottom: '1px solid lightgray', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems : "center", position : "relative", width: '80%', paddingTop: '20px', paddingBottom : "20px", paddingLeft: '20px', paddingRight: '50px', justifyContent: 'space-between', borderBottom: '1px solid lightgray', cursor: 'pointer' }}
           onClick={() => handleMeasurementClick(batchesView.id, item.id)}
         >
           <div>
@@ -209,6 +211,48 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
           <p style={{ margin: '0px', width: '50px' }}>{(item.total_viable_cells / 1000000000).toFixed(3)}b</p>
           <p style={{ margin: '0px', width: '50px' }}>{item.viable_cell_density.toFixed(3)}</p>
           <p style={{ margin: '0px', width: '50px' }}>{item.cell_diameter.toFixed(3)}</p>
+          {item.phenotyping ? (
+            <div
+              onMouseEnter={() => setHoveredMeasurement(index)}
+              onMouseLeave={() => setHoveredMeasurement(null)}
+            >
+              <p style = {{
+                margin : "0px",
+                width : "75px",
+                position : "relative",
+                borderBottom : "2px dashed black",
+              }}>
+                {item.phenotyping.unit_ops}
+              </p>
+              {hoveredMeasurement == index && (
+                <div style = {{
+                  backgroundColor : "#333",
+                  color : "#fff",
+                  zIndex : "10",
+                  position : "absolute",
+                  bottom: "70%",
+                  transform : "translateX(-25%)",
+                  borderRadius : "12px",
+                  width : "140px",
+                  padding : "10px",
+                }}>
+                  {Object.entries(item.phenotyping).map(([key, value]) => {
+                    if (key !== "unit_ops" && key !== "id") {
+                      return (
+                        <div key = {key}>
+                          <strong> {key} %: </strong> {value.toFixed(3)}
+                        </div>
+                      )
+                    }
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p style = {{ margin : "0px", width : "75px" }}>
+              -
+            </p>
+          )}
         </div>
           ))}
         </div>

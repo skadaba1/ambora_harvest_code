@@ -9,6 +9,20 @@ class Batch(models.Model):
 
     def __str__(self):
         return self.lot_number
+
+class Phenotyping(models.Model):
+    unit_ops = models.CharField(max_length = 100)
+    cd3 = models.FloatField(null = True, blank = True)
+    cd8 = models.FloatField(null = True, blank = True)
+    cd4 = models.FloatField(null = True, blank = True)
+    cm = models.FloatField(null = True, blank = True)
+    naive = models.FloatField(null = True, blank = True)
+    effector = models.FloatField(null = True, blank = True)
+    em = models.FloatField(null = True, blank = True)
+    cd14 = models.FloatField(null = True, blank = True)
+    cd19 = models.FloatField(null = True, blank = True)
+    cd20 = models.FloatField(null = True, blank = True)
+    cd56 = models.FloatField(null = True, blank = True)
     
 class Measurement(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
@@ -17,6 +31,7 @@ class Measurement(models.Model):
     viable_cell_density = models.FloatField(null=True, blank=True)
     cell_diameter = models.FloatField(null=True, blank=True)
     process_time = models.FloatField(null=True, blank=True)
+    phenotyping = models.ForeignKey(Phenotyping, null = True, blank = True, on_delete = models.CASCADE)
 
     def __str__(self):
         return self.batch
