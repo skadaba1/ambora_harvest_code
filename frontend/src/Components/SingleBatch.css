@@ -45,3 +45,15 @@
   /* color: rgb(189, 0, 0); */
   color: rgb(42, 42, 42);
 }
+
+.add-param-btn {
+  cursor: pointer;
+  transition: 0.3s;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+.add-param-btn:hover {
+  background-color: lightgray;
+}

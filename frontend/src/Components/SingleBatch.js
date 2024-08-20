@@ -153,33 +153,49 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
               Remove Batch
             </h3>
           </>
-          ) : (
+          ) : singleBatchView === 'add-measurement' ? (
           <>
             <div style={{ marginTop: '30px' }}>
-              <label style={{ fontWeight: 'bold' }}>Measurement Date</label>
+              <label style={{ fontWeight: 'bold', color: 'gray' }}>Measurement Date</label>
               <input className='setting-input' type="datetime-local" ref={newMeasurementDateRef} />
             </div>
-            <div style={{ marginTop: '30px' }}>
+            <div style={{ marginTop: '30px', color: 'gray' }}>
               <label style={{ fontWeight: 'bold' }}>Total Viable Cells</label>
               <input className='setting-input' type="number" ref={newTotalViableCellsRef} />
             </div>
-            <div style={{ marginTop: '30px' }}>
+            <div style={{ marginTop: '30px', color: 'gray' }}>
               <label style={{ fontWeight: 'bold' }}>Viable Cell Density</label>
               <input className='setting-input' type="number" ref={newViableCellDensityRef} />
             </div>
-            <div style={{ marginTop: '30px' }}>
+            <div style={{ marginTop: '30px', color: 'gray' }}>
               <label style={{ fontWeight: 'bold' }}>Cell Diameter</label>
               <input className='setting-input' type="number" ref={newCellDiameterRef} />
             </div>
-            <div style={{ marginTop: '30px' }}>
+            <div style={{ marginTop: '30px', color: 'gray' }}>
               <label style={{ fontWeight: 'bold' }}>Process Time (Hours)</label>
               <input className='setting-input' type="number" ref={newProcessTimeRef} />
             </div>
-            <div style={{ display: 'flex', width: '86%', marginTop: '30px', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex' }}>
+              <p className='add-param-btn' onClick={() => setSingleBatchView('edit-params')}>
+                <FontAwesomeIcon icon={faPlus} style={{ marginRight: '10px' }}/>
+                Edit Parameters
+              </p>
+            </div>
+            <div style={{ display: 'flex', width: '86%', marginTop: '10px', justifyContent: 'space-between' }}>
               <h3 className='batch-btn' style={{ textAlign: 'center', marginRight: '20px' }} onClick={() => setSingleBatchView('buttons')}>Cancel</h3>
               <h3 className='batch-btn harvest' style={{ textAlign: 'center' }} onClick={() => onAddMeasurementClick()}>Done</h3>
             </div>
           </>
+          ) : (
+            <>
+              <p>My Parameters</p>
+              <input className='setting-input' ref={newProcessTimeRef} placeholder='Parameter Name'/>
+              <input className='setting-input' ref={newProcessTimeRef} placeholder='Data Type'/>
+              <div style={{ display: 'flex', width: '86%', marginTop: '10px', justifyContent: 'space-between' }}>
+                <h3 className='batch-btn' style={{ textAlign: 'center', marginRight: '20px' }} onClick={() => setSingleBatchView('add-measurement')}>Cancel</h3>
+                <h3 className='batch-btn harvest' style={{ textAlign: 'center' }} onClick={() => onAddMeasurementClick()}>Done</h3>
+              </div>
+            </>
           )}
         </div>
         <div style={{ paddingLeft: '20px', width: '75%', overflowY: 'auto', height: '85vh' }}>
