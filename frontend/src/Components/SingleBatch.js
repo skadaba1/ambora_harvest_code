@@ -198,7 +198,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
             </>
           )}
         </div>
-        <div style={{ paddingLeft: '20px', width: '75%', overflowY: 'auto', height: '85vh' }}>
+        <div style={{ paddingLeft: '30px', width: '75%', overflowY: 'auto', height: '85vh' }}>
           <h1 style={{ margin: '0px', marginBottom: '20px' }}>Measurements</h1>
           <div style={{ width: '85%' }}>
             <Scatter data={chartDataA} options={options} width={100} height={50}/>
@@ -206,71 +206,95 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
           <div style={{ width: '85%' }}>
             <Scatter data={chartDataB} options={options} width={100} height={50}/>
           </div>
-          <div style={{ display: 'flex', width: "80%", paddingTop : "20px", paddingBottom : "20px", paddingLeft: '20px', paddingRight : "50px", borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
-            <p style={{ margin: '0px', width: '100px', fontWeight: 'bold' }}>Date</p>
-            <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>TVC</p>
-            <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>VCD</p>
-            <p style={{ margin: '0px', width: '50px', fontWeight: 'bold' }}>CD</p>
-            <p style = {{ margin : "0px", width : "75px", fontWeight : "bold" }}> Phenotyping </p>
-          </div>
-          {measurements.map((item, index) => (
-        <div
-          key={index}
-          className='measurement-row'
-          style={{ display: 'flex', alignItems : "center", position : "relative", width: '80%', paddingTop: '20px', paddingBottom : "20px", paddingLeft: '20px', paddingRight: '50px', justifyContent: 'space-between', borderBottom: '1px solid lightgray', cursor: 'pointer' }}
-          onClick={() => handleMeasurementClick(batchesView.id, item.id)}
-        >
-          <div>
-            <p style={{ margin: '0px', width: '100px' }}>{item.measurement_date.split('T')[0]}</p>
-            <p style={{ margin: '0px', color: 'gray', fontSize: '12px' }}>{item.measurement_date.split('T')[1]}</p>
-          </div>
-          <p style={{ margin: '0px', width: '50px' }}>{(item.total_viable_cells / 1000000000).toFixed(3)}b</p>
-          <p style={{ margin: '0px', width: '50px' }}>{item.viable_cell_density.toFixed(3)}</p>
-          <p style={{ margin: '0px', width: '50px' }}>{item.cell_diameter.toFixed(3)}</p>
-          {item.phenotyping ? (
-            <div
-              onMouseEnter={() => setHoveredMeasurement(index)}
-              onMouseLeave={() => setHoveredMeasurement(null)}
-            >
-              <p style = {{
-                margin : "0px",
-                width : "75px",
-                position : "relative",
-                borderBottom : "2px dashed black",
-              }}>
-                {item.phenotyping.unit_ops}
-              </p>
-              {hoveredMeasurement == index && (
-                <div style = {{
-                  backgroundColor : "#333",
-                  color : "#fff",
-                  zIndex : "10",
-                  position : "absolute",
-                  bottom: "70%",
-                  transform : "translateX(-25%)",
-                  borderRadius : "12px",
-                  width : "140px",
-                  padding : "10px",
-                }}>
-                  {Object.entries(item.phenotyping).map(([key, value]) => {
-                    if (key !== "unit_ops" && key !== "id") {
-                      return (
-                        <div key = {key}>
-                          <strong> {key} %: </strong> {value.toFixed(3)}
-                        </div>
-                      )
-                    }
-                  })}
-                </div>
-              )}
+          <div style={{ width: '90%', overflowX: 'auto', border: '1px solid lightgray', borderRadius: '5px', marginTop: '20px' }}>
+            <div style={{ 
+              display: 'flex', 
+              width: "100%", 
+              paddingTop : "20px", 
+              paddingBottom : "20px", 
+              paddingLeft: '20px', 
+              paddingRight : "50px", 
+              borderBottom: '1px solid lightgray',
+            }}>
+              <p className='measurement-header' style={{ minWidth: '100px' }}>Date</p>
+              <p className='measurement-header' style={{ minWidth: '50px' }}>TVC</p>
+              <p className='measurement-header' style={{ minWidth: '50px' }}>VCD</p>
+              <p className='measurement-header' style={{ minWidth: '50px' }}>CD</p>
+              <p className='measurement-header' style = {{ minWidth : "140px" }}> Phenotyping </p>
+              <p className='measurement-header' style={{ minWidth: '80px' }}>Delete</p>
             </div>
-          ) : (
-            <p style = {{ margin : "0px", width : "75px" }}>
-              -
-            </p>
-          )}
-        </div>
-          ))}
+            {measurements.map((item, index) => (
+              <div
+                key={index}
+                className='measurement-row'
+                style={{ 
+                  display: 'flex', 
+                  alignItems : "center", 
+                  position : "relative", 
+                  paddingTop: '20px', 
+                  paddingBottom : "20px", 
+                  paddingLeft: '20px', 
+                  paddingRight: '50px', 
+                  width: "100%",
+                  borderBottom: '1px solid lightgray', 
+                  cursor: 'pointer',
+                  gap: "70px"
+                }}
+                onClick={() => handleMeasurementClick(batchesView.id, item.id)}
+              >
+                <div>
+                  <p style={{ margin: '0px', minWidth: '100px' }}>{item.measurement_date.split('T')[0]}</p>
+                  <p style={{ margin: '0px', color: 'gray', fontSize: '12px' }}>{item.measurement_date.split('T')[1]}</p>
+                </div>
+                <p style={{ margin: '0px', minWidth: '50px' }}>{(item.data.total_viable_cells / 1000000000).toFixed(3)}b</p>
+                <p style={{ margin: '0px', minWidth: '50px' }}>{item.data.viable_cell_density.toFixed(3)}</p>
+                <p style={{ margin: '0px', minWidth: '50px' }}>{item.data.cell_diameter.toFixed(3)}</p>
+                {item.phenotyping ? (
+                  <div
+                    onMouseEnter={() => setHoveredMeasurement(index)}
+                    onMouseLeave={() => setHoveredMeasurement(null)}
+                  >
+                    <p style = {{
+                      margin : "0px",
+                      width : "75px",
+                      position : "relative",
+                      borderBottom : "2px dashed black",
+                    }}>
+                      {item.phenotyping.unit_ops}
+                    </p>
+                    {hoveredMeasurement == index && (
+                      <div style = {{
+                        backgroundColor : "#333",
+                        color : "#fff",
+                        zIndex : "10",
+                        position : "absolute",
+                        bottom: "70%",
+                        transform : "translateX(-25%)",
+                        borderRadius : "12px",
+                        width : "140px",
+                        padding : "10px",
+                      }}>
+                        {Object.entries(item.phenotyping).map(([key, value]) => {
+                          if (key !== "unit_ops" && key !== "id") {
+                            return (
+                              <div key = {key}>
+                                <strong> {key} %: </strong> {value.toFixed(3)}
+                              </div>
+                            )
+                          }
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p style = {{ margin : "0px", minWidth : "140px" }}>
+                    -
+                  </p>
+                )}
+                <FontAwesomeIcon className='delete-measurement-btn' icon={faTrash} style={{ width: '80px' }}/>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

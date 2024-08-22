@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404
 from .models import Batch, Measurement
 from .serializers import BatchSerializer, MeasurementSerializer
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 
 date_format = "%Y-%m-%dT%H:%M"  # For 'datetime-local' input type
@@ -55,7 +56,6 @@ def process_file(file_path):
                 df = process_excel(file_path, sheet_name)
                 for index, row in df.iterrows():
                     if pd.notna(row['Unit Op Start Time 1']):
-                        print(row)
                         if(not batch_start_date):
                             batch_start_date = convert_datetime_string(str(row['Unit Op Start Time 1']))
                         add_measurement_direct(convert_datetime_string(str(row['Unit Op Start Time 1'])), row['Lot Number'], row['TVC (cells)'], row['Avg Viability (%)'], row['Avg Cell Diameter (um)'], batch_start_date)
@@ -65,12 +65,16 @@ def process_file(file_path):
 
 def add_measurement_direct(measurement_date, lot_number, total_viable_cells, viable_cell_density, cell_diameter, batch_start_date):
     batch, created = Batch.objects.get_or_create(lot_number=lot_number, defaults={'batch_start_date': batch_start_date})
+    batch_data = {
+        'cell_diameter': cell_diameter,
+        'process_time': 0,
+        'total_viable_cells': total_viable_cells,
+        'viable_cell_density': viable_cell_density
+    }
     measurement = Measurement.objects.create(
         batch=batch,
         measurement_date=measurement_date,
-        total_viable_cells=total_viable_cells,
-        viable_cell_density=viable_cell_density,
-        cell_diameter=cell_diameter,
+        data=batch_data
     )
     measurement.save()
     loader.get("hfe").make_observation_and_update({
@@ -104,9 +108,9 @@ def aggregate_observations(observations):
     # For each day, compute average values of total viable cells, viable cell density, and cell diameter
     aggregated_observations = {}
     for date, obs_list in daily_observations.items():
-        total_viable_cells = sum(obs['total_viable_cells'] for obs in obs_list) / len(obs_list)
-        viable_cell_density = sum(obs['viable_cell_density'] for obs in obs_list) / len(obs_list)
-        cell_diameter = sum(obs['cell_diameter'] for obs in obs_list) / len(obs_list)
+        total_viable_cells = sum(obs['data']['total_viable_cells'] for obs in obs_list) / len(obs_list)
+        viable_cell_density = sum(obs['data']['viable_cell_density'] for obs in obs_list) / len(obs_list)
+        cell_diameter = sum(obs['data']['cell_diameter'] for obs in obs_list) / len(obs_list)
         aggregated_observations[date] = {
             'total_viable_cells': total_viable_cells,
             'viable_cell_density': viable_cell_density,
@@ -152,13 +156,14 @@ class HoeffdingStateEstimator():
 
     def log_observations(self):
         all_measurements = Measurement.objects.all()
+
         for measurement in all_measurements:
             self.make_observation_and_update({
                 'lot_number': measurement.batch.lot_number,
                 'measurement_date': convert_datetime_string(str(measurement.measurement_date)),
-                'total_viable_cells': measurement.total_viable_cells,
-                'viable_cell_density': measurement.viable_cell_density,
-                'cell_diameter': measurement.cell_diameter
+                'total_viable_cells': measurement.data['total_viable_cells'],
+                'viable_cell_density': measurement.data['viable_cell_density'],
+                'cell_diameter': measurement.data['cell_diameter']
             })
         pass
             
@@ -252,13 +257,12 @@ class HoeffdingStateEstimator():
         self.obs_df.reset_index(drop=True, inplace=True)
 
 def sim_growth_for_batch(batch, measurement):
-    
     last_measurement = measurement
 
     current_state = {
-        'total_viable_cells': float(last_measurement.total_viable_cells), 
-        'viable_cell_density': float(last_measurement.viable_cell_density), 
-        'cell_diameter': float(last_measurement.cell_diameter)
+        'total_viable_cells': float(last_measurement.data['total_viable_cells']), 
+        'viable_cell_density': float(last_measurement.data['viable_cell_density']), 
+        'cell_diameter': float(last_measurement.data['cell_diameter'])
         } 
 
     # Assuming last_measurements.measurement_date and batch.batch_start_date are datetime objects
@@ -374,13 +378,17 @@ def add_measurement(request):
     data_str = request.body.decode('utf-8')
     data_dict = json.loads(data_str)
     batch = Batch.objects.get(id=data_dict['lotId'])
+    measurement_date = timezone.make_aware(datetime.strptime(data_dict['measurementDate'], "%Y-%m-%dT%H:%M"))
+    batch_data = {
+        'cell_diameter': float(data_dict['cellDiameter']),
+        'process_time': float(0),
+        'total_viable_cells': float(data_dict['totalViableCells']),
+        'viable_cell_density': float(data_dict['viableCellDensity']),
+    }
     measurement = Measurement.objects.create(
         batch=batch,
-        measurement_date=data_dict['measurementDate'],
-        total_viable_cells=data_dict['totalViableCells'],
-        viable_cell_density=data_dict['viableCellDensity'],
-        cell_diameter=data_dict['cellDiameter'],
-        process_time=data_dict['processTime']
+        measurement_date=measurement_date,
+        data = batch_data
     )
     measurement.save()
     loader.get("hfe").make_observation_and_update({

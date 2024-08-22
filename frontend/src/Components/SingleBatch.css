@@ -57,3 +57,19 @@
 .add-param-btn:hover {
   background-color: lightgray;
 }
+
+.measurement-header {
+  margin: 0px;
+  margin-right: 70px;
+  font-weight: bold;
+}
+
+.delete-measurement-btn {
+  color: red;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.delete-measurement-btn:hover {
+  color: rgb(114, 0, 0);
+}
