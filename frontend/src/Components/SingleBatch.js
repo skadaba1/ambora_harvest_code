@@ -41,6 +41,27 @@ const options = {
   }
 };
 
+const options2 = {
+  scales: {
+    x: {
+      type: 'time',
+      time: {
+        unit: 'day'
+      },
+      title: {
+        display: true,
+        text: 'Date'
+      }
+    },
+    y: {
+      title: {
+        display: true,
+        text: 'Viable Cell Density (%)'
+      }
+    }
+  }
+};
+
 const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches, measurements, chartDataA, chartDataB, handleMeasurementClick }) => {
   const newMeasurementDateRef = useRef(null);
   const newTotalViableCellsRef = useRef(null);
@@ -49,6 +70,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
   const newProcessTimeRef = useRef(null);
   const [singleBatchView, setSingleBatchView] = useState('buttons');
   const [hoveredMeasurement, setHoveredMeasurement] = useState(null);
+  const [visibleGraph, setVisibleGraph] = useState('TVC');
 
   const onAddMeasurementClick = async () => {
     try {
@@ -124,16 +146,16 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
   }
 
   return (
-    <div style={{ paddingLeft: '3%', paddingTop: '3%', flex: 1 }}>
-      <div style={{ display: 'flex', marginBottom: '20px' }}>
-        <div className='back-btn' style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '20px' }}>
+    <div style={{ paddingLeft: '3%', flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', paddingBottom: '20px', paddingTop: '20px', borderBottom: '1px solid lightgray' }}>
+        <div onClick={() => setBatchesView('batches')} className='back-btn' style={{ display: 'inline-flex', alignItems: 'center' }}>
           <FontAwesomeIcon icon={faArrowLeft} />
-          <p onClick={() => setBatchesView('batches')} style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Back</p>
+          <p style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Back</p>
         </div>
+        <h1 style={{ margin: '0px', marginLeft: '5%' }}> Lot #{batchesView.lotNumber} </h1>
       </div>
       <div style={{ display: 'flex' }}>
         <div style={{ width: '25%', borderRight: '1px solid lightgray', display: 'flex', flexDirection: 'column', height: '80vh' }}>
-          <h1 style={{ margin: '0px' }}> Lot #{batchesView.lotNumber} </h1>
           { singleBatchView === 'buttons' ? (
           <>
             <h3 className='batch-btn' onClick={() => setSingleBatchView('add-measurement')} style={{ marginTop: '30px' }}>
@@ -198,15 +220,21 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
             </>
           )}
         </div>
-        <div style={{ paddingLeft: '30px', width: '75%', overflowY: 'auto', height: '85vh' }}>
-          <h1 style={{ margin: '0px', marginBottom: '20px' }}>Measurements</h1>
-          <div style={{ width: '85%' }}>
-            <Scatter data={chartDataA} options={options} width={100} height={50}/>
+        <div style={{ paddingLeft: '30px', width: '69%', overflowY: 'auto', height: '85vh' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: '10px', marginTop: '10px' }}>
+            <p onClick={() => setVisibleGraph('TVC')} className={ visibleGraph === 'TVC' ? 'graph-header-active' : 'graph-header'}>Total Viable Cells</p>
+            <p onClick={() => setVisibleGraph('VCD')} className={ visibleGraph === 'VCD' ? 'graph-header-active' : 'graph-header'}>Viable Cell Density</p>
           </div>
-          <div style={{ width: '85%' }}>
-            <Scatter data={chartDataB} options={options} width={100} height={50}/>
-          </div>
-          <div style={{ width: '90%', overflowX: 'auto', border: '1px solid lightgray', borderRadius: '5px', marginTop: '20px' }}>
+          { visibleGraph === 'TVC' ? (
+            <div style={{ width: '85%', marginLeft: '5%' }}>
+              <Scatter data={chartDataA} options={options} width={100} height={50}/>
+            </div>
+          ) : (
+            <div style={{ width: '85%', marginLeft: '5%' }}>
+              <Scatter data={chartDataB} options={options2} width={100} height={50}/>
+            </div>
+          )}
+          <div style={{ width: '100%', overflowX: 'auto', border: '1px solid lightgray', borderRadius: '5px', marginTop: '20px' }}>
             <div style={{ 
               display: 'flex', 
               width: "100%", 

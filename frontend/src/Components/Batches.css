@@ -15,10 +15,13 @@
 
 .back-btn {
   cursor: pointer;
+  transition: 0.3s;
+  padding: 8px 16px;
+  border-radius: 5px;
 }
 
 .back-btn:hover {
-  color: gray;
+  background-color: lightgray;
 }
 
 .batches-row {

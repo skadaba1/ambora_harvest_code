@@ -73,3 +73,21 @@
 .delete-measurement-btn:hover {
   color: rgb(114, 0, 0);
 }
+
+.graph-header-active {
+  color: white;
+  background-color: black;
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+
+.graph-header {
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.graph-header:hover {
+  background-color: lightgray;
+}
