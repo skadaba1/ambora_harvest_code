@@ -34,14 +34,13 @@ def convert_datetime_string(date_string):
 # Function to read Excel file and process data
 def process_excel(file_path, sheet_name):
     df = pd.read_excel(file_path, sheet_name, header=1)
-    #print(df.columns)
     # Columns to check for NaNs
     columns_to_check = ['Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)']
 
     # Remove rows where any of the specified columns have NaNs
     df_cleaned = df.dropna(subset=columns_to_check)
     df_cleaned = df_cleaned.dropna(axis=1, how='all')
-    df_cleaned = df_cleaned[['Lot Number', 'Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)', 'Unit Op Start Time 1', 'Unit Op Finish Time 1']]
+    df_cleaned = df_cleaned[['Lot Number', 'Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)', 'Unit Op Start Time 1', 'Unit Op Finish Time 1', 'Process Day']]
     return df_cleaned
 
 def process_file(file_path):
@@ -54,16 +53,27 @@ def process_file(file_path):
             try:
                 print("SHEET: " + sheet_name)
                 df = process_excel(file_path, sheet_name)
+                harvested = False
+                batch_id = None
                 for index, row in df.iterrows():
                     if pd.notna(row['Unit Op Start Time 1']):
+                        if row['Process Day'] == 'Harvest': # Check if batch in the sheet has been harvested
+                            harvested = True
                         if(not batch_start_date):
                             batch_start_date = convert_datetime_string(str(row['Unit Op Start Time 1']))
-                        add_measurement_direct(convert_datetime_string(str(row['Unit Op Start Time 1'])), row['Lot Number'], row['TVC (cells)'], row['Avg Viability (%)'], row['Avg Cell Diameter (um)'], batch_start_date)
+                        add_measurement_output = add_measurement_direct(convert_datetime_string(str(row['Unit Op Start Time 1'])), row['Lot Number'], row['TVC (cells)'], row['Avg Viability (%)'], row['Avg Cell Diameter (um)'], batch_start_date)
+                        batch_id = add_measurement_output['batch_id']
+                batch = Batch.objects.get(id=batch_id)
+                batch.status = 'Harvested' if harvested else 'Ongoing'
+                batch.save()
+                print(sheet_name + " Harvested: " + str(harvested))
             except Exception as e:
                print(f"Error processing sheet '{sheet_name}': {e}")
         batch_start_date = None
 
 def add_measurement_direct(measurement_date, lot_number, total_viable_cells, viable_cell_density, cell_diameter, batch_start_date):
+    print('loc2')
+    print(lot_number)
     batch, created = Batch.objects.get_or_create(lot_number=lot_number, defaults={'batch_start_date': batch_start_date})
     batch_data = {
         'cell_diameter': cell_diameter,
@@ -91,7 +101,7 @@ def add_measurement_direct(measurement_date, lot_number, total_viable_cells, via
         harvest_day = predict_harvest_day(batch, latest_measurement)
         batch.harvest_date = harvest_day
         batch.save()
-    return {'number_measurements': number_measurements_for_lot}
+    return {'number_measurements': number_measurements_for_lot, 'batch_id': batch.id}
 
 # Define a function to parse datetime strings
 def parse_datetime(dt_str):

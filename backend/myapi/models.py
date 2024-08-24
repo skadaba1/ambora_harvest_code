@@ -27,10 +27,7 @@ class Phenotyping(models.Model):
 class Measurement(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
     measurement_date = models.DateTimeField(null=True, blank=True)
-    # total_viable_cells = models.FloatField(null=True, blank=True)
-    # viable_cell_density = models.FloatField(null=True, blank=True)
-    # cell_diameter = models.FloatField(null=True, blank=True)
-    # process_time = models.FloatField(null=True, blank=True)
+    # when the reference object is deleted all related objects in that reference will also be deleted
     phenotyping = models.ForeignKey(Phenotyping, null = True, blank = True, on_delete = models.CASCADE)
     data = models.JSONField(null=True, blank=True)
 

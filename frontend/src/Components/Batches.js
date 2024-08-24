@@ -107,6 +107,15 @@ const Batches = () => {
 
       if (response.status === 200) {
         const result = await response.json();
+        result.sort((a, b) => {
+            if (a.status === "Ongoing" && b.status !== "Ongoing") {
+                return -1; // a should come before b
+            } else if (a.status !== "Ongoing" && b.status === "Ongoing") {
+                return 1; // b should come before a
+            } else {
+                return 0; // a and b are equal in terms of sorting criteria
+            }
+        });
         console.log(result);
         setBatches(result);
       } else {
@@ -346,7 +355,7 @@ const Batches = () => {
               style={{ display: 'flex', width: '95%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}
             >
               <p style={{ margin: '0px', width: '50px', alignItems: 'center', display: 'flex', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
-                { index < statusColors.length ? <FontAwesomeIcon icon={faCircle} color={statusColors[index]} size='lg'/> : 'Done' }
+                { item.status === 'Ongoing' ? <FontAwesomeIcon icon={faCircle} color={'#4CBB17'} size='lg'/> : 'Done' }
               </p>
               <p style={{ margin: '0px', width: '130px', fontWeight: 'bold', fontSize: '14px' }}>{item.lot_number}</p>
               <div style={{ width: '130px' }}>
