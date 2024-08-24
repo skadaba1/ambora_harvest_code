@@ -191,7 +191,7 @@ const Batches = () => {
 
       if (response.status === 200) {
         const result = await response.json();
-        console.log(result);
+        result.sort((a, b) => new Date(b.measurement_date) - new Date(a.measurement_date));
         setMeasurements(result);
         handleMeasurementClick(batchId, result[0].id);
       } else {
@@ -349,7 +349,7 @@ const Batches = () => {
               key={index}
               className='batches-row'
               onClick={() => {
-                setBatchesView({ id: item.id, lotNumber: item.lot_number });
+                setBatchesView({ id: item.id, lotNumber: item.lot_number, status: item.status });
                 getMeasurements(item.id);
               }}
               style={{ display: 'flex', width: '95%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}

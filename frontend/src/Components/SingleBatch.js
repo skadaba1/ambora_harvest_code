@@ -153,6 +153,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
           <p style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Back</p>
         </div>
         <h1 style={{ margin: '0px', marginLeft: '5%' }}> Lot #{batchesView.lotNumber} </h1>
+        <p style={{ margin: '0px', marginLeft: '5%', backgroundColor: '#f0f0f0', padding: '10px 20px', borderRadius: '10px', border: '1px solid gray' }}>Status: {batchesView.status}</p>
       </div>
       <div style={{ display: 'flex' }}>
         <div style={{ width: '25%', borderRight: '1px solid lightgray', display: 'flex', flexDirection: 'column', height: '80vh' }}>
@@ -220,7 +221,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
             </>
           )}
         </div>
-        <div style={{ paddingLeft: '30px', width: '69%', overflowY: 'auto', height: '85vh' }}>
+        <div style={{ paddingLeft: '30px', width: '69%', overflowY: 'auto', height: '89vh' }}>
           <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: '10px', marginTop: '10px' }}>
             <p onClick={() => setVisibleGraph('TVC')} className={ visibleGraph === 'TVC' ? 'graph-header-active' : 'graph-header'}>Total Viable Cells</p>
             <p onClick={() => setVisibleGraph('VCD')} className={ visibleGraph === 'VCD' ? 'graph-header-active' : 'graph-header'}>Viable Cell Density</p>
