@@ -10,25 +10,10 @@ class Batch(models.Model):
     def __str__(self):
         return self.lot_number
 
-class Phenotyping(models.Model):
-    unit_ops = models.CharField(max_length = 100)
-    cd3 = models.FloatField(null = True, blank = True)
-    cd8 = models.FloatField(null = True, blank = True)
-    cd4 = models.FloatField(null = True, blank = True)
-    cm = models.FloatField(null = True, blank = True)
-    naive = models.FloatField(null = True, blank = True)
-    effector = models.FloatField(null = True, blank = True)
-    em = models.FloatField(null = True, blank = True)
-    cd14 = models.FloatField(null = True, blank = True)
-    cd19 = models.FloatField(null = True, blank = True)
-    cd20 = models.FloatField(null = True, blank = True)
-    cd56 = models.FloatField(null = True, blank = True)
-    
 class Measurement(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
     measurement_date = models.DateTimeField(null=True, blank=True)
     # when the reference object is deleted all related objects in that reference will also be deleted
-    phenotyping = models.ForeignKey(Phenotyping, null = True, blank = True, on_delete = models.CASCADE)
     data = models.JSONField(null=True, blank=True)
 
     def __str__(self):

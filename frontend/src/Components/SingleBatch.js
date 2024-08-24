@@ -234,12 +234,12 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
               <Scatter data={chartDataB} options={options2} width={100} height={50}/>
             </div>
           )}
-          <div style={{ width: '100%', overflowX: 'auto', border: '1px solid lightgray', borderRadius: '5px', marginTop: '20px' }}>
+          <div style={{ position : "relative", width: '100%', overflowX: 'auto', border: '1px solid lightgray', borderRadius: '5px', marginTop: '20px' }}>
             <div style={{ 
               display: 'flex', 
               width: "100%", 
-              paddingTop : "20px", 
-              paddingBottom : "20px", 
+              paddingTop : "30px", 
+              paddingBottom : "30px", 
               paddingLeft: '20px', 
               paddingRight : "50px", 
               borderBottom: '1px solid lightgray',
@@ -248,7 +248,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
               <p className='measurement-header' style={{ minWidth: '50px' }}>TVC</p>
               <p className='measurement-header' style={{ minWidth: '50px' }}>VCD</p>
               <p className='measurement-header' style={{ minWidth: '50px' }}>CD</p>
-              <p className='measurement-header' style = {{ minWidth : "140px" }}> Phenotyping </p>
+              <p className='measurement-header' style = {{ minWidth : "75px" }}> Phenotyping </p>
               <p className='measurement-header' style={{ minWidth: '80px' }}>Delete</p>
             </div>
             {measurements.map((item, index) => (
@@ -266,7 +266,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
                   width: "100%",
                   borderBottom: '1px solid lightgray', 
                   cursor: 'pointer',
-                  gap: "70px"
+                  gap: "70px",
                 }}
                 onClick={() => handleMeasurementClick(batchesView.id, item.id)}
               >
@@ -277,18 +277,19 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
                 <p style={{ margin: '0px', minWidth: '50px' }}>{(item.data.total_viable_cells / 1000000000).toFixed(3)}b</p>
                 <p style={{ margin: '0px', minWidth: '50px' }}>{item.data.viable_cell_density.toFixed(3)}</p>
                 <p style={{ margin: '0px', minWidth: '50px' }}>{item.data.cell_diameter.toFixed(3)}</p>
-                {item.phenotyping ? (
+                {item.data.phenotyping ? (
                   <div
                     onMouseEnter={() => setHoveredMeasurement(index)}
                     onMouseLeave={() => setHoveredMeasurement(null)}
                   >
                     <p style = {{
                       margin : "0px",
-                      width : "75px",
+                      minWidth : "75px",
                       position : "relative",
                       borderBottom : "2px dashed black",
+                      display : "inline-flex",
                     }}>
-                      {item.phenotyping.unit_ops}
+                      {item.data.unit_ops}
                     </p>
                     {hoveredMeasurement == index && (
                       <div style = {{
@@ -296,17 +297,18 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
                         color : "#fff",
                         zIndex : "10",
                         position : "absolute",
-                        bottom: "70%",
-                        transform : "translateX(-25%)",
+                        left : "250px",
+                        bottom : "5px",
                         borderRadius : "12px",
-                        width : "140px",
+                        columnCount : 2,
+                        maxHeight : "120px",
                         padding : "10px",
                       }}>
-                        {Object.entries(item.phenotyping).map(([key, value]) => {
+                        {Object.entries(item.data.phenotyping).map(([key, value]) => {
                           if (key !== "unit_ops" && key !== "id") {
                             return (
                               <div key = {key}>
-                                <strong> {key} %: </strong> {value.toFixed(3)}
+                                <strong> {key}: </strong> {value.toFixed(1)}
                               </div>
                             )
                           }
@@ -315,7 +317,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
                     )}
                   </div>
                 ) : (
-                  <p style = {{ margin : "0px", minWidth : "140px" }}>
+                  <p style = {{ margin : "0px", minWidth : "75px" }}>
                     -
                   </p>
                 )}
