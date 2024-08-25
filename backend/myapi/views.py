@@ -14,6 +14,7 @@ from .models import Batch, Measurement
 from .serializers import BatchSerializer, MeasurementSerializer
 from datetime import datetime, timedelta
 from django.utils import timezone
+import re
 
 
 date_format = "%Y-%m-%dT%H:%M"  # For 'datetime-local' input type
@@ -65,15 +66,16 @@ def process_file(file_path):
                         batch_id = add_measurement_output['batch_id']
                 batch = Batch.objects.get(id=batch_id)
                 batch.status = 'Harvested' if harvested else 'Ongoing'
+                # get batch tags
+                match = re.search(r'\((.*?)\)', sheet_name)
+                if match:
+                    batch.data = {'tags': [match.group(1)]}
                 batch.save()
-                print(sheet_name + " Harvested: " + str(harvested))
             except Exception as e:
                print(f"Error processing sheet '{sheet_name}': {e}")
         batch_start_date = None
 
 def add_measurement_direct(measurement_date, lot_number, total_viable_cells, viable_cell_density, cell_diameter, batch_start_date, unit_ops = None, phenotyping = None):
-    print('loc2')
-    print(lot_number)
     batch, created = Batch.objects.get_or_create(lot_number=lot_number, defaults={'batch_start_date': batch_start_date})
     batch_data = {
         'cell_diameter': cell_diameter,
