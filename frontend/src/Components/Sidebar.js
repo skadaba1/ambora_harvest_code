@@ -1,6 +1,6 @@
 import './Sidebar.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faVial, faAtom, faUser, faGear, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { faVial, faAtom, faUser, faGear, faChartLine, faCloudArrowUp } from '@fortawesome/free-solid-svg-icons';
 
 const Sidebar = ({ setAppView }) => {
 
@@ -20,7 +20,11 @@ const Sidebar = ({ setAppView }) => {
         <FontAwesomeIcon icon={faAtom} style={{ marginRight: '20px' }} />
         Simulation
       </a>
-      <a className='side-btn' style={{ marginTop: 'auto' }}>
+      <a className='side-btn' style={{ marginTop: 'auto' }} onClick={() => setAppView('upload')}>
+        <FontAwesomeIcon icon={faCloudArrowUp} style={{ marginRight: '20px' }} />
+        Upload Data
+      </a>
+      <a className='side-btn'>
         <FontAwesomeIcon icon={faUser} style={{ marginRight: '20px' }} />
         Account
       </a>

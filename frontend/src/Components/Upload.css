@@ -1,0 +1,16 @@
+.upload-btn {
+  border: 1px dotted #ccc;
+  padding: 20px 40px;
+  display: inline-flex;
+  flex-direction: column;
+  cursor: pointer;
+  border-radius: 5px;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  position: relative;
+}
+
+.upload-btn:hover {
+  border: 1px solid black;
+}

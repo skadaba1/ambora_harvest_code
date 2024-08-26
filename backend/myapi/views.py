@@ -421,8 +421,14 @@ def add_measurement(request):
 
 @api_view(['POST'])
 def get_measurements(request):
-    batch = Batch.objects.get(id=request.data['lotId'])
-    measurements = Measurement.objects.filter(batch=batch)
+    print('loc12')
+    print(len(request.data))
+    measurements = None
+    if len(request.data) == 0:
+        measurements = Measurement.objects.all()
+    else:
+        batch = Batch.objects.get(id=request.data['lotId'])
+        measurements = Measurement.objects.filter(batch=batch)
     serializer = MeasurementSerializer(measurements, many=True)
     return Response(serializer.data)
 

@@ -4,6 +4,7 @@ import Simulation from './Simulation';
 import Batches from './Batches';
 import Schedule from './Schedule';
 import Trends from './Trends';
+import Upload from './Upload';
 import { useState } from 'react';
 
 function Home() {
@@ -16,8 +17,10 @@ function Home() {
         <Simulation />
       ) : appView === 'batches' ? (
         <Batches />
-      ) : (
+      ) : appView === 'trends' ? (
         <Trends />
+      ) : (
+        <Upload />
       )}
     </div>
   );
