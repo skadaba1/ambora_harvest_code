@@ -323,7 +323,7 @@ const Batches = () => {
   return (
     <>
       {batchesView === 'batches' ? (
-        <div style={{ padding: '3%', flex: 1, overflowY: 'auto' }}>
+        <div style={{ paddingLeft: '3%', paddingRight: '3%', flex: 1, overflowY: 'auto', paddingTop: '10px' }}>
           <Schedule />
           <div style={{ display: 'flex', marginTop: '20px', marginBottom: '20px', alignItems: 'center' }}>
             <h2 style={{ marginBottom: '0px', marginTop: '0px', marginRight: '40px' }}>Batches List</h2>
