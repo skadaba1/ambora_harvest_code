@@ -20,13 +20,13 @@ const options2 = {
     x: {
       title: {
         display: true,
-        text: 'Day Number'
+        text: 'Process Day'
       }
     },
     y: {
       title: {
         display: true,
-        text: 'Count'
+        text: 'TVC (Billions)'
       },
       beginAtZero: true
     }
@@ -86,23 +86,29 @@ const Trends = () => {
             const status = batch.status;
             groupedBatches[status].push(batch);  // Add the batch to the appropriate list
         });
-        const groupedBatchesTags = {};
-        const labels = Array.from({ length: 17 }, (_, i) => i); // [0, 1, 2, ..., 16]
+        const labels = Array.from({ length: 10 }, (_, i) => i + 1); // [0, 1, 2, ..., 16]
 
         async function processBatches(result) {
           let datasets = [];
+          const lineColor = {
+            'N': 'rgba(75,192,192, 0.4)',
+            'E': 'rgba(0, 200, 0, 0.4)',
+            'TCE': 'rgba(200, 0, 0, 0.4)',
+          }
           for (const batch of result) {
             if (batch.data) {
+              console.log(batch);
               try {
                 const batchData = await getMeasurementsForBatch(batch.id);
-                console.log(batchData);
+                // console.log(batchData);
         
                 datasets.push({
-                  label: batch.id,
-                  data: labels.map(label => batchData[label] || 0), // Counts (y-axis)
+                  label: batch.lot_number + '(' + batch.data.tags[0] + ')',
+                  data: labels.map(label => batchData[label - 1] !== undefined ? batchData[label - 1] : null), // Use null for missing points
                   fill: false,
-                  backgroundColor: 'rgba(75,192,192,1)',
-                  borderColor: 'rgba(75,192,192,1)',
+                  backgroundColor: lineColor[batch.data.tags[0]],
+                  borderColor: lineColor[batch.data.tags[0]],
+                  spanGaps: true,
                 });
               } catch (error) {
                 console.error(`Error fetching data for batch ${batch.id}:`, error);
@@ -171,10 +177,9 @@ const Trends = () => {
           //   ...item,
           //   days_since_first_measurement: Math.round(daysDifference), // Round the result to nearest whole number
           // };
-          output[Math.round(daysDifference)] = item.data.total_viable_cells
+          output[Math.round(daysDifference)] = item.data.total_viable_cells / 1000000000
           // return [Math.round(daysDifference), item.data.total_viable_cells]
         });
-        console.log(output)
         return output;
       } else {
         const errorData = await response.json();
@@ -190,12 +195,17 @@ const Trends = () => {
   }, []);
 
   return (
-    <div style={{paddingLeft: '3%', paddingTop: '25px', flex: 1 }}>
+    <div style={{paddingLeft: '2%', paddingRight: '2%', paddingTop: '25px', flex: 1 }}>
       <h1 style={{ margin: '0px' }}>Trends</h1>
-      <div style={{ width: '47%', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '15px', marginTop: '30px' }}>
-        <p style={{ margin: '0px', marginBottom: '20px', fontWeight: 'bold' }}>Current Batch Statistics</p>
-        <Bar data={batchChart} options={options}/>
-        <Line data={lineChartData} options={options2}/>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ width: '45%', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '15px', marginTop: '30px' }}>
+          <p style={{ margin: '0px', marginBottom: '20px', fontWeight: 'bold' }}>Current Batch Statistics</p>
+          <Bar data={batchChart} options={options} height={200}/>
+        </div>
+        <div style={{ width: '45%', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '15px', marginTop: '30px' }}>
+          <p style={{ margin: '0px', marginBottom: '20px', fontWeight: 'bold' }}>Cell Growth Trends</p>
+          <Line data={lineChartData} options={options2} height={200}/>
+        </div>
       </div>
       {/* <div style={{ border: '1px solid black', borderRadius: '5px', padding: '10px', marginTop: '10px', width: '47%' }}>
         <h3>Batch Statistics</h3>
