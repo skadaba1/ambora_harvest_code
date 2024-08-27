@@ -1,6 +1,6 @@
 import { REACT_APP_API_URL } from "../consts";
 import { useState, useEffect } from 'react';
-import { Bar, Line } from 'react-chartjs-2';
+import { Bar, Line, Scatter } from 'react-chartjs-2';
 
 const options = {
   scales: {
@@ -34,6 +34,11 @@ const options2 = {
 };
 
 const Trends = () => {
+
+  const [responseFeature, setResponseFeature] = useState(""); // For selected response variable
+  const [xFeature, setXFeature] = useState(""); // For selected x-axis feature
+  const [correlationData, setCorrelationData] = useState({ labels: [], datasets: [] }); // Data for correlation plot
+
   const [batchStatusData, setBatchStatusData] = useState({
     'Ongoing': [],
     'Harvested': [],
@@ -65,6 +70,46 @@ const Trends = () => {
       },
     ],
   })
+  const [measurementData, setMeasurementData] = useState({})
+  const handleFeatureSelection = (feature, isResponse = false) => {
+      if (isResponse) {
+        setResponseFeature(feature);
+        setXFeature(""); // Reset x-axis feature if response is changed
+      } else {
+        setXFeature(feature);
+        if (responseFeature && measurementData[feature] && measurementData[responseFeature]) {
+          const data = {
+            labels: measurementData[feature],
+            datasets: [
+              {
+                label: `${responseFeature} vs ${feature}`,
+                data: measurementData[feature].map((value, index) => ({ x: value, y: measurementData[responseFeature][index] })),
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+              }
+            ]
+          };
+          setCorrelationData(data);
+        }
+      }
+    };
+  const fetchMeasurementData = async () => {
+    try {
+      const response = await fetch(REACT_APP_API_URL + 'api/get-measurement-data/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setMeasurementData(data);
+    } catch (error) {
+      console.error('Error fetching measurement data:', error);
+    }
+  };
 
   const getBatches = async () => {
     try {
@@ -191,8 +236,35 @@ const Trends = () => {
   }
 
   useEffect(() => {
+    fetchMeasurementData()
     getBatches();
   }, []);
+
+  const scatterOptions = {
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: xFeature || 'X-axis',
+        },
+        min: Math.min(...(measurementData[xFeature] || [0])), // Set minimum value for x-axis
+        max: Math.max(...(measurementData[xFeature] || [1])), // Set maximum value for x-axis
+      },
+      y: {
+        title: {
+          display: true,
+          text: responseFeature || 'Y-axis',
+        },
+        min: Math.min(...(measurementData[responseFeature] || [0])), // Set minimum value for y-axis
+        max: Math.max(...(measurementData[responseFeature] || [1])), // Set maximum value for y-axis
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+      },
+    },
+  };
 
   return (
     <div style={{paddingLeft: '2%', paddingRight: '2%', paddingTop: '25px', flex: 1 }}>
@@ -207,23 +279,32 @@ const Trends = () => {
           <Line data={lineChartData} options={options2} height={200}/>
         </div>
       </div>
-      {/* <div style={{ border: '1px solid black', borderRadius: '5px', padding: '10px', marginTop: '10px', width: '47%' }}>
-        <h3>Batch Statistics</h3>
-        <div style={{display: 'flex', justifyContent: 'space-between'}}>
+      <div style={{ width: '97%', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '15px', marginTop: '30px' }}>
+        <p style={{ margin: '0px', marginBottom: '20px', fontWeight: 'bold' }}>Smart Process Analytics</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
-            <h3>Ongoing</h3>
-            <p>{batchStatusData['Ongoing'].length}</p>
+            <label style={{ marginRight: '10px', }}>Response Variable:</label>
+            <select onChange={(e) => handleFeatureSelection(e.target.value, true)} value={responseFeature} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }}>
+              <option value="">Select...</option>
+              {Object.keys(measurementData).map((feature, index) => (
+                <option key={index} value={feature}>{feature}</option>
+              ))}
+            </select>
           </div>
           <div>
-            <h3>Harvested</h3>
-            <p>{batchStatusData['Harvested'].length}</p>
-          </div>
-          <div>
-            <h3>Terminated</h3>
-            <p>{batchStatusData['Terminated'].length}</p>
+            <label style={{ marginRight: '10px'}}>X-axis Feature:</label>
+            <select onChange={(e) => handleFeatureSelection(e.target.value)} value={xFeature} disabled={!responseFeature} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }}>
+              <option value="">Select...</option>
+              {Object.keys(measurementData).filter(feature => feature !== responseFeature).map((feature, index) => (
+                <option key={index} value={feature}>{feature}</option>
+              ))}
+            </select>
           </div>
         </div>
-      </div> */}
+        {xFeature && responseFeature && (
+          <Scatter data={correlationData} options={scatterOptions} />
+        )}
+      </div>
     </div>
   )
 }

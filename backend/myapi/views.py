@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 import json
 from collections import defaultdict
-from skmultiflow.trees import HoeffdingTreeRegressor
 import os
 import tempfile
 from django.shortcuts import get_object_or_404
@@ -124,10 +123,6 @@ def add_measurement_direct(measurement_date, lot_number, total_viable_cells, via
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
 
     latest_measurement = Measurement.objects.filter(id=measurement.id, batch=batch).first()
-    if(number_measurements_for_lot > 2):
-        harvest_day = predict_harvest_day(batch, latest_measurement)
-        batch.harvest_date = harvest_day
-        batch.save()
     return {'number_measurements': number_measurements_for_lot, 'batch_id': batch.id}
 
 # Define a function to parse datetime strings
@@ -155,188 +150,6 @@ def aggregate_observations(observations):
         }
     
     return aggregated_observations
-
-# Combine observations and predictions into a unified list of dictionaries
-# Combine observations and predictions into a unified list of dictionaries
-def unify_data(observations, predictions):
-    aggregated_observations = aggregate_observations(observations)
-    
-    unified_data = defaultdict(dict)
-    
-    # Add aggregated observations
-    for date, obs in aggregated_observations.items():
-        unified_data[date]['observed'] = obs
-    
-    # Add predictions
-    for pred_date_str, pred in predictions.items():
-        pred_date = parse_datetime(pred_date_str).date()
-        unified_data[pred_date]['predicted'] = pred
-    
-    # Convert unified data to a list of dictionaries
-    unified_list = []
-    for date, values in unified_data.items():
-        date_str = date.isoformat()
-        unified_list.append({'date': date_str, 'values': values})
-    
-    return unified_list
-
-class HoeffdingStateEstimator():
-    def __init__(self, input_dim, state_properties=['total_viable_cells', 'viable_cell_density', 'cell_diameter']):
-        self.tree_models_dict = dict()
-        for i in range(input_dim):
-            self.tree_models_dict[state_properties[i]] = HoeffdingTreeRegressor()
-        columns = ['lot_number', 'measurement_date'] + state_properties
-        self.obs_df = pd.DataFrame(columns=columns)
-        self.state_properties = state_properties
-
-        self.log_observations()
-
-    def log_observations(self):
-        all_measurements = Measurement.objects.all()
-
-        for measurement in all_measurements:
-            self.make_observation_and_update({
-                'lot_number': measurement.batch.lot_number,
-                'measurement_date': convert_datetime_string(str(measurement.measurement_date)),
-                'total_viable_cells': measurement.data['total_viable_cells'],
-                'viable_cell_density': measurement.data['viable_cell_density'],
-                'cell_diameter': measurement.data['cell_diameter']
-            })
-        pass
-            
-    def make_observation(self, obs):
-        # Convert dictionary to DataFrame and concatenate
-        for property_name in self.state_properties:
-            obs[property_name] = float(obs[property_name])
-        obs_df = pd.DataFrame([obs])
-        self.obs_df = pd.concat([self.obs_df, obs_df], ignore_index=True)
-    
-    def get_num_observations(self):
-        return len(self.obs_df)
-    
-    def make_observation_and_update(self, obs):
-        self.make_observation(obs)
-        self.update_models()
-    
-    # online learning
-    def update_models(self):  
-        for lot in self.obs_df['lot_number'].unique():
-            lot_df = self.obs_df[self.obs_df['lot_number'] == lot]
-            lot_df = lot_df.sort_values(by=['measurement_date'])
-            num_observations = len(lot_df)
-            if(num_observations > 1):
-                # Train the model
-        
-                current_features = lot_df.iloc[num_observations-2][['measurement_date'] + self.state_properties].values
-                forward_time = (datetime.strptime(lot_df.iloc[num_observations-1]['measurement_date'], date_format) - datetime.strptime(current_features[0], date_format)).total_seconds() / 3600
-                current_features[0] = forward_time
-                for property_name in self.state_properties:
-                    next_property_value = lot_df.iloc[num_observations-1][property_name]
-
-                    self.tree_models_dict[property_name].partial_fit([current_features], [next_property_value])
-    
-    # Function to forecast the next state
-    def forecast_next_state(self, current_features, forward_time):
-        current_features = list(current_features.values())
-        current_features = [forward_time] + current_features
-        out = dict()
-        for model_name in self.tree_models_dict.keys():
-            value = (self.tree_models_dict[model_name].predict([current_features])[0])
-            out[model_name] = value
-        return out
-    
-    def sim_growth(self, current_state, forward_times, starting_date): # forward_time_inc in hours
-        states_dict = defaultdict(list)
-        for forward_time in forward_times:
-            current_date = str(starting_date + timedelta(days=int(forward_time/24)))
-            next_state = self.forecast_next_state(current_state, forward_time)
-            states_dict[current_date] = next_state
-            current_state = next_state
-        return states_dict
-
-    def eval_on_observations(self):
-        # assume obs is list of dicts of prediction vs
-        predictions = defaultdict(list)
-        actual = defaultdict(list)
-        timestamps = []
-        for i in range(len(self.obs_df) - 1):
-            measurement_date = self.obs_df.iloc[i]['measurement_date']
-            current_features = self.obs_df.iloc[i][self.state_properties]
-            forward_time = (datetime.strptime(self.obs_df.iloc[i+1]['measurement_date'], date_format) - datetime.strptime(measurement_date, date_format)).total_seconds() / 3600
-            
-            next_property_values = self.obs_df.iloc[i+1]
-
-            # Forecast the next state
-            if i > 0:
-                current_features = current_features.to_dict()
-                predicted_values = self.forecast_next_state(current_features, forward_time)
-                for index, property_name in enumerate(self.state_properties):
-                    predictions[property_name].append(predicted_values[property_name])
-                    actual[property_name].append(next_property_values[property_name])
-                    timestamps.append(self.obs_df.iloc[i + 1]['measurement_date'])
-        return predictions, actual, timestamps
-
-    def get_confidence_intervals(self):
-        margins = dict()
-        predictions, actual, timestamps = self.eval_on_observations()
-        for property_name in self.state_properties:
-            confidence_level = 0.95
-            std_dev_tvc = np.std(np.array(predictions[property_name]) - np.array(actual[property_name]))
-            margin_of_error = std_dev_tvc * 1.96  # 95% confidence interval
-            margins[property_name] = margin_of_error
-        return margins
-    
-    def delete(self, lot_number):
-        # Filter the DataFrame
-        self.obs_df = self.obs_df[self.obs_df['lot_number'] != lot_number]
-
-        # Optionally reset the index if needed
-        self.obs_df.reset_index(drop=True, inplace=True)
-
-def sim_growth_for_batch(batch, measurement):
-    last_measurement = measurement
-
-    current_state = {
-        'total_viable_cells': float(last_measurement.data['total_viable_cells']), 
-        'viable_cell_density': float(last_measurement.data['viable_cell_density']), 
-        'cell_diameter': float(last_measurement.data['cell_diameter'])
-        } 
-
-    # Assuming last_measurements.measurement_date and batch.batch_start_date are datetime objects
-    last_measurement_date = last_measurement.measurement_date
-    batch_start_date = batch.batch_start_date
-
-    # Calculate the starting day
-    days_since_start = (last_measurement_date - batch_start_date).days + 1
-    start_day = 16 - days_since_start
-
-    # Generate the list of days to predict
-    forward_time_inc = 24 # predict 24 hours advance at a time
-    forward_times = [day * forward_time_inc for day in list(range(1, start_day))]
-
-    states_dict = loader.get("hfe").sim_growth(current_state, forward_times, last_measurement.measurement_date)
-    margins = loader.get("hfe").get_confidence_intervals()
-    return states_dict, margins
-
-class LazyLoader:
-    def __init__(self):
-        self.models = {}
-
-    def get(self, name):
-        if name not in self.models:
-            if(name == 'hfe'):
-                self.models[name] = HoeffdingStateEstimator(input_dim=3)
-        return self.models[name]
-
-loader = LazyLoader()
-
-def predict_harvest_day(batch, measurement):
-    states_dict, margins = sim_growth_for_batch(batch, measurement)
-    for date in states_dict:
-        if((parse_datetime(date) - batch.batch_start_date).days >= 8):
-            if(states_dict[date]['total_viable_cells'] > 1e9):
-                return date
-    return None # Terminate batch
 
 
 # get correlation between viable cell density and TVC and between cell diameter and TVC as the number of batches increases
@@ -381,6 +194,23 @@ def get_correlations_data():
         num_batches.append(current_batch)
         current_batch += 1
     return correlations_viable_cell_density, correlations_cell_diameter
+
+def get_measurement_data_ordered():
+    print("TEST")
+    measurements = Measurement.objects.all()
+    output = {
+        'cell_diameter': [],
+        'viable_cell_density': [],
+        'total_viable_cells': [],
+        'process_time': []
+    }
+    for measurement in measurements:
+        output['cell_diameter'].append(measurement.data['cell_diameter'])
+        output['viable_cell_density'].append(measurement.data['viable_cell_density'])
+        output['total_viable_cells'].append(measurement.data['total_viable_cells'])
+        output['process_time'].append(measurement.data['process_time'])
+    return output
+
 	
 @api_view(['GET'])
 def Batches(request):
@@ -407,7 +237,6 @@ def delete_batch(request):
     data_dict = json.loads(data_str)
     batch = Batch.objects.get(id=data_dict['lotId'])
     batch.delete()
-    loader.get("hfe").delete(data_dict['lotId'])
     return Response('Success')
 
 @api_view(['POST'])
@@ -429,16 +258,8 @@ def add_measurement(request):
         data = batch_data
     )
     measurement.save()
-    loader.get("hfe").make_observation_and_update({
-        'lot_number': batch.lot_number, 
-        'measurement_date':data_dict['measurementDate'],
-        'total_viable_cells':data_dict['totalViableCells'],
-        'viable_cell_density':data_dict['viableCellDensity'],
-        'cell_diameter':data_dict['cellDiameter']})
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
-    # if(number_measurements_for_lot > 5):
-    #     harvest_day = predict_harvest_day(batch, measurement)
-    #     print("Harvest Day: ", harvest_day)
+
     return Response({'number_measurements': number_measurements_for_lot})
 
 @api_view(['POST'])
@@ -502,15 +323,8 @@ def sim_growth(request):
             # Do something with the batch and measurement objects
             # For example, simulate growth based on the measurement
 
-            # Simulate growth
-            states_dict, margins = sim_growth_for_batch(batch, measurement)
-            unified_list = unify_data(observed, states_dict)
-
             response_data = {
-                'state_predictions': states_dict,
-                'state_margins': margins,
-                'unified_obs_and_preds': unified_list
-                # Add more fields as needed based on your simulation results
+                "PLACEHOLDER":None
             }
             return Response(response_data, status=200)
 
@@ -543,20 +357,9 @@ def update_inactive_columns(request):
         InactiveColumns.objects.get_or_create(name=name, defaults={'name': name})
     return Response({'message': 'Success'})
 
-def get_measurement_data_ordered():
-    measurements = Measurement.objects.all()
-    output = {
-        'cell_diameter': [],
-        'viable_cell_density': [],
-        'total_viable_cells': [],
-        'process_time': []
-    }
-    for measurement in measurements:
-        output['cell_diameter'].append(measurement.data['cell_diameter'])
-        output['viable_cell_density'].append(measurement.data['viable_cell_density'])
-        output['total_viable_cells'].append(measurement.data['total_viable_cells'])
-        output['process_time'].append(measurement.data['process_time'])
-    return output
-
-print(get_measurement_data_ordered())
+@api_view(['GET'])
+def get_measurement_data(request):
+    print("TEST", request.user)
+    output = get_measurement_data_ordered()
+    return Response(output)
 
