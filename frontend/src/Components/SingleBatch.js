@@ -275,10 +275,10 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
                   <p style={{ margin: '0px', minWidth: '100px' }}>{item.measurement_date.split('T')[0]}</p>
                   <p style={{ margin: '0px', color: 'gray', fontSize: '12px' }}>{item.measurement_date.split('T')[1]}</p>
                 </div>
-                <p style={{ margin: '0px', minWidth: '50px' }}>{(item.data.total_viable_cells / 1000000000).toFixed(3)}b</p>
-                <p style={{ margin: '0px', minWidth: '50px' }}>{item.data.viable_cell_density.toFixed(3)}</p>
-                <p style={{ margin: '0px', minWidth: '50px' }}>{item.data.cell_diameter.toFixed(3)}</p>
-                {item.data.phenotyping ? (
+		{item.data["TVC (cells)"] ? (<p style={{ margin: '0px', minWidth: '50px' }}>{(item.data["TVC (cells)"] / 1000000000).toFixed(3)}b</p>) : (<p style = {{margin : "0px", minWidth : "50px"}}> - </p>)}
+                {item.data["Avg Viability (%)"] ? (<p style={{ margin: '0px', minWidth: '50px' }}>{item.data["Avg Viability (%)"].toFixed(3)}</p>) : (<p style = {{margin : "0px", minWidth : "50px"}}> - </p>)}
+                {item.data["Avg Cell Diameter (um)"] ? (<p style={{ margin: '0px', minWidth: '50px' }}>{item.data["Avg Cell Diameter (um)"].toFixed(3)}</p>) : (<p style = {{margin : "0px", minWidth : "50px"}}> - </p>)}
+                {(item.data["CD3%"] || item.data["CD8%"] || item.data["CD4%"] || item.data["CM %"] || item.data["CM %"] || item.data["Naive %"] || item.data["Effector %"] || item.data["EM %"] || item.data["CD14%"] || item.data["CD19%"] || item.data["CD20%"] || item.data["CD56%"]) ? (
                   <div
                     onMouseEnter={() => setHoveredMeasurement(index)}
                     onMouseLeave={() => setHoveredMeasurement(null)}
@@ -290,7 +290,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
                       borderBottom : "2px dashed black",
                       display : "inline-flex",
                     }}>
-                      {item.data.unit_ops}
+                      {item.data["Unit Ops"]}
                     </p>
                     {hoveredMeasurement == index && (
                       <div style = {{
@@ -305,8 +305,8 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
                         maxHeight : "120px",
                         padding : "10px",
                       }}>
-                        {Object.entries(item.data.phenotyping).map(([key, value]) => {
-                          if (key !== "unit_ops" && key !== "id") {
+                        {Object.entries(item.data).map(([key, value]) => {
+                          if (value && ["CD3%", "CD8%", "CD4%", "CM %", "Naive %", "Effector %", "EM %", "CD14%", "CD19%", "CD20%", "CD56%"].includes(key)) {
                             return (
                               <div key = {key}>
                                 <strong> {key}: </strong> {value.toFixed(1)}
@@ -322,7 +322,7 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
                     -
                   </p>
                 )}
-                <FontAwesomeIcon className='delete-measurement-btn' icon={faTrash} style={{ width: '80px' }}/>
+		<FontAwesomeIcon className='delete-measurement-btn' icon={faTrash} style={{ width: '80px' }}/>
               </div>
             ))}
           </div>

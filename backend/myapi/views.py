@@ -17,6 +17,7 @@ import re
 
 
 date_format = "%Y-%m-%dT%H:%M"  # For 'datetime-local' input type
+desired_format = "%Y-%m-%dT%H:%M"
 
 def convert_datetime_string(date_string):
     try:
@@ -27,7 +28,6 @@ def convert_datetime_string(date_string):
         except ValueError as e:
             print(f"Error parsing date string: {date_string}, with error: {e}")
             return None
-    desired_format = '%Y-%m-%dT%H:%M'
     formatted_string = dt.strftime(desired_format)
     return formatted_string
 
@@ -51,35 +51,102 @@ def interpret_datetime(timedelta_obj):
         # Handle pandas._libs.tslibs.timedeltas.Timedelta
         total_hours = timedelta_obj.total_seconds() / 3600.0
     else:
-        raise TypeError("Unsupported type. The object must be of type 'numpy.timedelta64' or 'pandas._libs.tslibs.timedeltas.Timedelta'.")
+        print("Unsupported type. The object must be of type 'numpy.timedelta64' or 'pandas._libs.tslibs.timedeltas.Timedelta'.")
+        return None
+        # raise TypeError("Unsupported type. The object must be of type 'numpy.timedelta64' or 'pandas._libs.tslibs.timedeltas.Timedelta'.")
     return total_hours
 
+def days_difference(later_time, earlier_time):
+	later_time = pd.Timestamp(datetime.strptime(later_time, desired_format))
+	earlier_time = pd.Timestamp(datetime.strptime(earlier_time, desired_format))
+	return (later_time.date() - earlier_time.date()).days
+
 def process_file(file_path):
+    batches = Batch.objects.all()
+    batches.delete()
+    
     file_path = file_path
     excel_file = pd.ExcelFile(file_path)
     sheet_names = excel_file.sheet_names
-    batch_start_date = None
+    
+    all_columns = set()
+    for sheet_name in sheet_names:
+        if "_Process Data" in sheet_name and "Master" not in sheet_name:
+            df = pd.read_excel(file_path, sheet_name, header = 1)
+            all_columns.update(df.columns.tolist())
+    
+    all_columns.remove("TVC (cell/mL)")
+    all_columns.remove("Process Day")
+    all_columns = list(all_columns)
+    all_columns.insert(0, "Process Day")
     for sheet_name in sheet_names:
         if('_Process Data' in sheet_name and "Master" not in sheet_name):
             try:
+                print()
                 print("SHEET: " + sheet_name)
-                df = process_excel(file_path, sheet_name)
+                df = pd.read_excel(file_path, sheet_name, header = 1)
+                # df = process_excel(file_path, sheet_name)
+                df.rename(columns = {"TVC (cell/mL)" : "TVC (cells)"}, inplace = True)
                 harvested = False
                 batch_id = None
+                batch_start_date = None
+                prev_unit_op_start_time_1 = None
                 for index, row in df.iterrows():
                     if pd.notna(row['Unit Op Start Time 1']):
+                        unit_op_start_time_1 = convert_datetime_string(str(row["Unit Op Start Time 1"]))
+                        print(unit_op_start_time_1)
+                        data = {}
+                        flagged_columns = set()
                         if row['Process Day'] == 'Harvest': # Check if batch in the sheet has been harvested
                             harvested = True
-                        if(not batch_start_date):
-                            batch_start_date = convert_datetime_string(str(row['Unit Op Start Time 1']))
-                        add_measurement_output = add_measurement_direct(
-                            convert_datetime_string(str(row['Unit Op Start Time 1'])), 
-                            row['Lot Number'], 
-                            row['TVC (cells)'], 
-                            row['Avg Viability (%)'], 
-                            row['Avg Cell Diameter (um)'], 
-                            batch_start_date, 
-                            interpret_datetime(row['Process Time from Day 1 (hours)']))
+                        if not batch_start_date and unit_op_start_time_1:
+                            batch_start_date = unit_op_start_time_1
+                        for column in all_columns:
+                            if column in df.columns.tolist() and not pd.isnull(row[column]):
+                                if column == "Unit Op Start Time 1":
+                                    if not unit_op_start_time_1:
+                                        flagged_columns.add(column)
+                                    else:
+                                        if str(row["Process Day"]) != "Harvest" and (days_difference(unit_op_start_time_1, batch_start_date) + 1) != row["Process Day"]:
+                                            flagged_columns.add(column)
+                                            flagged_columns.add("Process Day")
+                                        if prev_unit_op_start_time_1:
+                                            days_since_previous = days_difference(unit_op_start_time_1, prev_unit_op_start_time_1)
+                                            if days_since_previous >= 10 or days_since_previous < 0:
+                                                flagged_columns.add(column)
+                                    data[column] = unit_op_start_time_1
+                                elif column == "Process Time from Day 1 (hours)" or isinstance(row[column],  np.timedelta64) or isinstance(row[column], pd.Timedelta):
+                                    data[column] = interpret_datetime(row[column])
+                                    if not data[column]:
+                                        flagged_columns.add(column)
+                                elif isinstance(row[column], pd.Timestamp):
+                                    data[column] = convert_datetime_string(str(row[column]))
+                                    if not data[column]:
+                                        flagged_columns.add(column) 
+                                elif not (isinstance(row[column], str) or isinstance(row[column], int) or isinstance(row[column], float)):
+                                    data[column] = None
+                                    flagged_columns.add(column)
+                                else:
+                                    data[column] = row[column]
+                            else:
+                                data[column] = None			
+                        if unit_op_start_time_1:
+                            prev_unit_op_start_time_1 = unit_op_start_time_1
+                        phenotyping_data = None
+                        if data["Unit Ops"] == "CliniMACS":
+                            phenotyping_data = {}
+                            for column in ["CD3%", "CD8%", "CD4%", "CM %", "Naive %", "Effector %", "EM %", "CD14%", "CD19%", "CD20%", "CD56%"]:
+                                phenotyping_data[column] = data[column]
+                        flagged_columns = {"flagged columns" : list(flagged_columns)}
+                        add_measurement_output = add_measurement_direct(data, phenotyping_data, batch_start_date, flagged_columns)
+			# add_measurement_output = add_measurement_direct(
+                            # convert_datetime_string(str(row['Unit Op Start Time 1'])), 
+                            # row['Lot Number'], 
+                            # row['TVC (cells)'], 
+                            # row['Avg Viability (%)'], 
+                            # row['Avg Cell Diameter (um)'], 
+                            # batch_start_date, 
+                            # interpret_datetime(row['Process Time from Day 1 (hours)']))
                         batch_id = add_measurement_output['batch_id']
                 batch = Batch.objects.get(id=batch_id)
                 batch.status = 'Harvested' if harvested else 'Ongoing'
@@ -90,31 +157,23 @@ def process_file(file_path):
                 batch.save()
             except Exception as e:
                print(f"Error processing sheet '{sheet_name}': {e}")
-        batch_start_date = None
 
-def add_measurement_direct(measurement_date, lot_number, total_viable_cells, viable_cell_density, cell_diameter, batch_start_date, process_time, unit_ops = None, phenotyping = None):
+def add_measurement_direct(data, phenotyping_data, batch_start_date, flagged_columns):
     print('loc14')
-    print(process_time)
-    batch, created = Batch.objects.get_or_create(lot_number=lot_number, defaults={'batch_start_date': batch_start_date})
-    batch_data = {
-        'cell_diameter': cell_diameter,
-        'process_time': process_time,
-        'total_viable_cells': total_viable_cells,
-        'viable_cell_density': viable_cell_density
-    }
-    if unit_ops:
-        batch_data["unit_ops"] = unit_ops
-    if phenotyping:
-        batch_data["phenotyping"] = phenotyping
+    # print(process_time)
+    batch, created = Batch.objects.get_or_create(lot_number = data["Lot Number"], defaults={'batch_start_date': batch_start_date})
+    if phenotyping_data:
+        batch.phenotyping_data = phenotyping_data
     measurement = Measurement.objects.create(
         batch=batch,
-        lot_number=lot_number,
-        measurement_date=measurement_date,
-        data=batch_data
+        lot_number=data["Lot Number"],
+        measurement_date=data["Unit Op Start Time 1"],
+        data=data,
+        flagged_columns = flagged_columns 
     )
     measurement.save()
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
-
+    
     latest_measurement = Measurement.objects.filter(id=measurement.id, batch=batch).first()
     return {'number_measurements': number_measurements_for_lot, 'batch_id': batch.id}
 
@@ -198,10 +257,11 @@ def get_measurement_data_ordered():
         'process_time': []
     }
     for measurement in measurements:
-        output['cell_diameter'].append(measurement.data['cell_diameter'])
-        output['viable_cell_density'].append(measurement.data['viable_cell_density'])
-        output['total_viable_cells'].append(measurement.data['total_viable_cells'])
-        output['process_time'].append(measurement.data['process_time'])
+        if measurement.data["Avg Cell Diameter (um)"] and measurement.data["Avg Viability (%)"] and measurement.data["TVC (cells)"]:
+            output['cell_diameter'].append(measurement.data['Avg Cell Diameter (um)'])
+            output['viable_cell_density'].append(measurement.data['Avg Viability (%)'])
+            output['total_viable_cells'].append(measurement.data['TVC (cells)'])
+            output['process_time'].append(measurement.data['process_time'])
     return output
 
 	
@@ -356,3 +416,9 @@ def get_measurement_data(request):
     output = get_measurement_data_ordered()
     return Response(output)
 
+@api_view(["GET"])
+def get_phenotyping_data_for_batch(request):
+    batch = Batch.objects.filter(lot_number = request.data["lot_number"]).first()
+    if batch:
+        return Response(batch.phenotyping_data)
+    return Response({"Error" : "There is no batch with the provided lot number"})
