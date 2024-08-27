@@ -145,7 +145,7 @@ const Upload = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('File uploaded successfully:', data);
+        setChangesMade(false);
       } else {
         console.error('File upload failed:', response.statusText);
       }
@@ -172,7 +172,7 @@ const Upload = () => {
         </div>
       </div>
 
-      <div style={{ height: '78%', overflow: 'hidden', overflowY: 'auto', marginTop: '30px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
+      <div style={{ height: '90%', overflow: 'hidden', overflowY: 'auto', marginTop: '30px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
         {renderHeaders()}
         {renderRows()}
       </div>

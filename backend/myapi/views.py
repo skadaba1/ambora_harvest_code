@@ -518,6 +518,7 @@ def get_inactive_columns(request):
 @api_view(['POST'])
 def update_inactive_columns(request):
     names = request.data['data']
+    InactiveColumns.objects.all().delete()
     for name in names:
         InactiveColumns.objects.get_or_create(name=name, defaults={'name': name})
     return Response({'message': 'Success'})
