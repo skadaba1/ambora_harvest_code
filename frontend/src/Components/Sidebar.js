@@ -24,14 +24,14 @@ const Sidebar = ({ setAppView }) => {
         <FontAwesomeIcon icon={faCloudArrowUp} style={{ marginRight: '20px' }} />
         Upload Data
       </a>
-      <a className='side-btn'>
+      {/* <a className='side-btn'>
         <FontAwesomeIcon icon={faUser} style={{ marginRight: '20px' }} />
         Account
       </a>
       <a className='side-btn'>
         <FontAwesomeIcon icon={faGear} style={{ marginRight: '20px' }} />
         Settings
-      </a>
+      </a> */}
     </div>
   );
 }

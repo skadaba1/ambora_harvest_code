@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import Batches, add_batch, delete_batch, add_measurement, get_measurements, upload_process_file, delete_all_batches, sim_growth, update_batch_status, update_inactive_columns, get_inactive_columns, get_measurement_data
+from .spa import fit_spa_model
 
 urlpatterns = [
     path('batches/', Batches, name='batches'),
@@ -13,5 +14,6 @@ urlpatterns = [
     path('update-batch-status/', update_batch_status, name='harvest-batch'),
     path('update-inactive-columns/', update_inactive_columns, name='update-inactive-columns'),
     path('get-inactive-columns/', get_inactive_columns, name='get-inactive-columns'),
-    path('get-measurement-data/', get_measurement_data, name='get-measurement-data')
+    path('get-measurement-data/', get_measurement_data, name='get-measurement-data'),
+    path('fit-spa-model/', fit_spa_model, name='fit-spa-model'),
 ]

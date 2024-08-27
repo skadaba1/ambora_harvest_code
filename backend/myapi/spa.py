@@ -20,6 +20,10 @@ from sklearn.metrics import r2_score
 from sklearn.inspection import permutation_importance
 from sklearn.tree import export_text
 
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from .views import get_measurement_data_ordered
+
 
 class Sherlock():
     
@@ -32,7 +36,8 @@ class Sherlock():
         maximal = self.spa_maximal_corr(X, y, feature_names)
         multicollinearity = self.spa_multicollinearity(X, feature_names)
         decision = self.decision_tree(pearson, quadratic, maximal, multicollinearity, feature_names) if cls is None else cls
-        self.sorting_hat.run_model(decision, X, y, feature_names)
+        output = self.sorting_hat.run_model(decision, X, y, feature_names)
+        return output
     
     def spa_multicollinearity(self, X, feature_names):
         X = add_constant(X)
@@ -124,13 +129,20 @@ class SortingHat():
         selected_model = self.assign_to_model(cls)
         fit_results = selected_model(X, y, feature_names)
         print(cls, fit_results['feature_importance'], fit_results['accuracy'])
+        output = {}
+        output['cls'] = cls
+        output['feature_importance'] = fit_results['feature_importance']
+        output['accuracy'] = fit_results['accuracy']
         if(cls == 'dt'):
             tree_text = fit_results['tree_text']
             print(tree_text)
+            output['tree_text'] = tree_text
         elif(cls == 'rf'):
             tree_texts = fit_results['tree_text']
+            output['tree_text'] = tree_texts
             for tree in tree_texts:
                 print(tree)
+        return output
     def assign_to_model(self, cls):
         if cls == 'rf':
             return self.rf
@@ -216,3 +228,13 @@ class SortingHat():
         importance_dict = dict(zip(feature_names, importance))
         accuracy = model.score(X_normalized, y)
         return {'feature_importance': importance_dict, 'accuracy': accuracy}
+    
+@api_view(['POST'])
+def fit_spa_model(request):
+    data = get_measurement_data_ordered()
+    y = np.array(data.pop(request.data['responseFeature']))
+    feature_names = list(data.keys())
+    x = np.array(list(data.values())).T  # Convert to numpy array and transpose
+    DI = Sherlock()
+    output = DI.log(x, y, feature_names)
+    return Response({'data': output})

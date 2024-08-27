@@ -33,6 +33,15 @@ const options2 = {
   }
 };
 
+const models_abbr = {
+  'lr': 'Linear Regression',
+  'rf': 'Random Forest',
+  'svr': 'Support Vector Regression',
+  'pls': 'Partial Least Squares',
+  'dt': 'Decision Tree',
+  'pr': 'Polynomial Regression',
+}
+
 const Trends = () => {
 
   const [responseFeature, setResponseFeature] = useState(""); // For selected response variable
@@ -71,10 +80,27 @@ const Trends = () => {
     ],
   })
   const [measurementData, setMeasurementData] = useState({})
+  const [variableAnalysisData, setVariableAnalysisData] = useState({})
+  const [variableAnalysisChart, setVariableAnalysisChart] = useState({
+    labels: [], // Labels for the x-axis
+    datasets: [
+      {
+        label: 'Batches',
+        data: [], // The 3 numbers you want to display
+        backgroundColor: [
+          'rgba(50, 150, 255, 0.5)',
+          'rgba(0, 200, 0, 0.4)',
+          'rgba(200, 0, 0, 0.4)',
+        ],
+      },
+    ],
+  })
+
   const handleFeatureSelection = (feature, isResponse = false) => {
       if (isResponse) {
         setResponseFeature(feature);
         setXFeature(""); // Reset x-axis feature if response is changed
+        fitSpaModel(feature);
       } else {
         setXFeature(feature);
         if (responseFeature && measurementData[feature] && measurementData[responseFeature]) {
@@ -242,9 +268,22 @@ const Trends = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          responseFeature: responseFeature
+        }),
       });
       const data = await response.json();
       console.log(data);
+      setVariableAnalysisData(data.data);
+      setVariableAnalysisChart((prevState) => ({
+        labels: Object.keys(data.data['feature_importance']),
+        datasets: [
+          {
+            ...prevState.datasets[0],
+            data: Object.values(data.data['feature_importance']),
+          },
+        ],
+      }));
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -285,23 +324,26 @@ const Trends = () => {
     },
   };
 
+  console.log(variableAnalysisChart)
+
   return (
-    <div style={{paddingLeft: '2%', paddingRight: '2%', paddingTop: '25px', flex: 1 }}>
+    <div style={{paddingLeft: '2%', paddingRight: '2%', paddingTop: '25px', paddingBottom: '3%', flex: 1, overflowY: 'auto' }}>
       <h1 style={{ margin: '0px' }}>Trends</h1>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div style={{ width: '45%', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '15px', marginTop: '30px' }}>
+        <div style={{ width: '45%', backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '15px', marginTop: '30px', border: '1px solid #ccc' }}>
           <p style={{ margin: '0px', marginBottom: '20px', fontWeight: 'bold' }}>Current Batch Statistics</p>
-          <Bar data={batchChart} options={options} height={200}/>
+          <Bar data={batchChart} options={options} />
         </div>
-        <div style={{ width: '45%', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '15px', marginTop: '30px' }}>
+        <div style={{ width: '45%', backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '15px', marginTop: '30px', border: '1px solid #ccc' }}>
           <p style={{ margin: '0px', marginBottom: '20px', fontWeight: 'bold' }}>Cell Growth Trends</p>
-          <Line data={lineChartData} options={options2} height={200}/>
+          <Line data={lineChartData} options={options2} />
         </div>
       </div>
-      <div style={{ width: '97%', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '15px', marginTop: '30px' }}>
+
+      <div style={{ width: '96%', backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '15px', marginTop: '30px', border: '1px solid #ccc' }}>
         <p style={{ margin: '0px', marginBottom: '20px', fontWeight: 'bold' }}>Smart Process Analytics</p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <div>
+        <div style={{ display: 'flex', marginBottom: '20px', alignItems: 'center' }}>
+          <div style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '8px'}}>
             <label style={{ marginRight: '10px', }}>Response Variable:</label>
             <select onChange={(e) => handleFeatureSelection(e.target.value, true)} value={responseFeature} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }}>
               <option value="">Select...</option>
@@ -310,7 +352,28 @@ const Trends = () => {
               ))}
             </select>
           </div>
-          <div>
+          {/* <button 
+            onClick={handleSPAClick} 
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+              transition: 'background-color 0.3s ease',
+              width: '100px',
+              marginLeft: '10px',
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+          >
+            Analyze
+          </button> */}
+          <div style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '8px', marginLeft: 'auto'}}>
             <label style={{ marginRight: '10px'}}>X-axis Feature:</label>
             <select onChange={(e) => handleFeatureSelection(e.target.value)} value={xFeature} disabled={!responseFeature} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }}>
               <option value="">Select...</option>
@@ -320,33 +383,22 @@ const Trends = () => {
             </select>
           </div>
         </div>
-        {xFeature && responseFeature && (
-          <Scatter data={correlationData} options={scatterOptions} />
-        )}
-    <div style={{ display: 'flex', marginTop: '20px'}}>
-        <button 
-          onClick={handleSPAClick} 
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-            transition: 'background-color 0.3s ease',
-            width: '200px',
-            marginLeft: '50px',
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
-        >
-          Analyze
-        </button>
+        {/* {xFeature && responseFeature && ( */}
+        <div style={{ display: 'flex' }}>
+          <div style={{ width: '48%', paddingRight: '2%', borderRight: '1px solid black' }}>
+            <div style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '30px', padding: '10px'}}>
+              <p style={{ margin: '0px', marginBottom: '10px', fontWeight: 'bold' }}>Model: <span style={{ fontWeight: 'normal' }}>{models_abbr[variableAnalysisData['cls']]}</span></p>
+              <p style={{ margin: '0px', fontWeight: 'bold' }}>Accuracy: <span style={{ fontWeight: 'normal' }}>{variableAnalysisData['accuracy'].toFixed(5)}</span></p>
+            </div>
+            <Bar data={variableAnalysisChart} options={options} height={75} width={100}/>
+          </div>
+          <div style={{ width: '48%', paddingLeft: '2%' }}>
+            <Scatter data={correlationData} options={scatterOptions} height={1} width={1}/>
+          </div>
+        </div>
+        {/* )} */}
       </div>
-      </div>
+
     </div>
   )
 }
