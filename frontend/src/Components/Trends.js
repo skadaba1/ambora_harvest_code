@@ -235,10 +235,23 @@ const Trends = () => {
     }
   }
 
+  const fitSpaModel = async (responseFeature) => {
+    try {
+      const response = await fetch(REACT_APP_API_URL + 'api/fit-spa-model/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
   const handleSPAClick = () => {
-    // Button click handler logic goes here
-    console.log("Button clicked!");
-    // Implement your desired functionality here
+    fitSpaModel(responseFeature);
   };
 
   useEffect(() => {
