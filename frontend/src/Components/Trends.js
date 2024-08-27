@@ -235,6 +235,12 @@ const Trends = () => {
     }
   }
 
+  const handleSPAClick = () => {
+    // Button click handler logic goes here
+    console.log("Button clicked!");
+    // Implement your desired functionality here
+  };
+
   useEffect(() => {
     fetchMeasurementData()
     getBatches();
@@ -304,6 +310,29 @@ const Trends = () => {
         {xFeature && responseFeature && (
           <Scatter data={correlationData} options={scatterOptions} />
         )}
+    <div style={{ display: 'flex', marginTop: '20px'}}>
+        <button 
+          onClick={handleSPAClick} 
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+            transition: 'background-color 0.3s ease',
+            width: '200px',
+            marginLeft: '50px',
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+        >
+          Analyze
+        </button>
+      </div>
       </div>
     </div>
   )
