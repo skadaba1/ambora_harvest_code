@@ -41,8 +41,19 @@ def process_excel(file_path, sheet_name):
     # Remove rows where any of the specified columns have NaNs
     df_cleaned = df.dropna(subset=columns_to_check)
     df_cleaned = df_cleaned.dropna(axis=1, how='all')
-    df_cleaned = df_cleaned[['Lot Number', 'Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)', 'Unit Op Start Time 1', 'Unit Op Finish Time 1', 'Process Day']]
+    df_cleaned = df_cleaned[['Lot Number', 'Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)', 'Unit Op Start Time 1', 'Unit Op Finish Time 1', 'Process Day', 'Process Time from Day 1 (hours)']]
     return df_cleaned
+
+def interpret_datetime(timedelta_obj):
+    if isinstance(timedelta_obj, np.timedelta64):
+        # Handle numpy.timedelta64
+        total_hours = timedelta_obj.astype('timedelta64[h]').astype(float)
+    elif isinstance(timedelta_obj, pd.Timedelta):
+        # Handle pandas._libs.tslibs.timedeltas.Timedelta
+        total_hours = timedelta_obj.total_seconds() / 3600.0
+    else:
+        raise TypeError("Unsupported type. The object must be of type 'numpy.timedelta64' or 'pandas._libs.tslibs.timedeltas.Timedelta'.")
+    return total_hours
 
 def process_file(file_path):
     file_path = file_path
@@ -62,7 +73,14 @@ def process_file(file_path):
                             harvested = True
                         if(not batch_start_date):
                             batch_start_date = convert_datetime_string(str(row['Unit Op Start Time 1']))
-                        add_measurement_output = add_measurement_direct(convert_datetime_string(str(row['Unit Op Start Time 1'])), row['Lot Number'], row['TVC (cells)'], row['Avg Viability (%)'], row['Avg Cell Diameter (um)'], batch_start_date)
+                        add_measurement_output = add_measurement_direct(
+                            convert_datetime_string(str(row['Unit Op Start Time 1'])), 
+                            row['Lot Number'], 
+                            row['TVC (cells)'], 
+                            row['Avg Viability (%)'], 
+                            row['Avg Cell Diameter (um)'], 
+                            batch_start_date, 
+                            interpret_datetime(row['Process Time from Day 1 (hours)']))
                         batch_id = add_measurement_output['batch_id']
                 batch = Batch.objects.get(id=batch_id)
                 batch.status = 'Harvested' if harvested else 'Ongoing'
@@ -75,11 +93,13 @@ def process_file(file_path):
                print(f"Error processing sheet '{sheet_name}': {e}")
         batch_start_date = None
 
-def add_measurement_direct(measurement_date, lot_number, total_viable_cells, viable_cell_density, cell_diameter, batch_start_date, unit_ops = None, phenotyping = None):
+def add_measurement_direct(measurement_date, lot_number, total_viable_cells, viable_cell_density, cell_diameter, batch_start_date, process_time, unit_ops = None, phenotyping = None):
+    print('loc14')
+    print(process_time)
     batch, created = Batch.objects.get_or_create(lot_number=lot_number, defaults={'batch_start_date': batch_start_date})
     batch_data = {
         'cell_diameter': cell_diameter,
-        'process_time': 0,
+        'process_time': process_time,
         'total_viable_cells': total_viable_cells,
         'viable_cell_density': viable_cell_density
     }
@@ -522,3 +542,21 @@ def update_inactive_columns(request):
     for name in names:
         InactiveColumns.objects.get_or_create(name=name, defaults={'name': name})
     return Response({'message': 'Success'})
+
+def get_measurement_data_ordered():
+    measurements = Measurement.objects.all()
+    output = {
+        'cell_diameter': [],
+        'viable_cell_density': [],
+        'total_viable_cells': [],
+        'process_time': []
+    }
+    for measurement in measurements:
+        output['cell_diameter'].append(measurement.data['cell_diameter'])
+        output['viable_cell_density'].append(measurement.data['viable_cell_density'])
+        output['total_viable_cells'].append(measurement.data['total_viable_cells'])
+        output['process_time'].append(measurement.data['process_time'])
+    return output
+
+print(get_measurement_data_ordered())
+
