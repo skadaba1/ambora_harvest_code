@@ -1,15 +1,10 @@
 import './Upload.css'
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudArrowUp } from '@fortawesome/free-solid-svg-icons';
+import { faCloudArrowUp, faInfo } from '@fortawesome/free-solid-svg-icons';
 import { REACT_APP_API_URL } from "../consts";
 import styled from 'styled-components';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  overflow-x: auto;
-`;
+import Switch from '@mui/material/Switch';
 
 const Row = styled.div`
   display: flex;
@@ -26,16 +21,21 @@ const Cell = styled.div`
 
 const HeaderCell = styled(Cell)`
   min-width : 80px;
-  background-color: #f0f0f0;
-  font-weight: bold;
+  min-height : 38px;
+  display: flex;
+  align-items: center;  // Aligns items vertically in the center
+  justify-content: space-between;
 `;
 
 const DataCell = styled(Cell)`
   background-color: ${({ color }) => color || 'white'};
+  font-size: 14px;
 `;
 
 const Upload = () => {
   const [dataset, setDataset] = useState([]);
+  const [inactiveColumns, setInactiveColumns] = useState([]);
+  const [changesMade, setChangesMade] = useState(false);
 
   useEffect(() => {
     getAllMeasurements();
@@ -50,8 +50,21 @@ const Upload = () => {
         },
       });
       const data = await response.json();
-      console.log(data.length);
+      console.log(data);
       setDataset(data);
+      const inactiveColumns = await fetch(REACT_APP_API_URL + 'api/get-inactive-columns/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      const inactiveColumnsData = await inactiveColumns.json();
+      let newInactiveColumns = []
+      Object.keys(inactiveColumnsData).map((key) => {
+        newInactiveColumns.push(inactiveColumnsData[key]['name'])
+      })
+      console.log(newInactiveColumns);
+      setInactiveColumns(newInactiveColumns);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -82,11 +95,24 @@ const Upload = () => {
     }
   }
 
+  const handleHeaderCheck = (event, key) => {
+    setChangesMade(true);
+    if (event.target.checked) {
+      setInactiveColumns(inactiveColumns.filter((column) => column !== key));
+    } else {
+      setInactiveColumns([...inactiveColumns, key]);
+    }
+  }
+
   const renderHeaders = () => (
     <Row>
-      {Object.keys(dataset[0]['data']).map((key) => (
-        <HeaderCell style={{ width: `${key.length * 8 + 20}px` }}>
-          {key}
+      <HeaderCell style={{ width: '110px', fontSize: '14px', fontWeight: 'bold' }}>LOT NUMBER</HeaderCell>
+      {Object.keys(dataset.length > 0 ? dataset[0]['data'] : {}).map((key) => (
+        <HeaderCell style={{ width: `${(key.length * 5) + 110}px`, fontSize: '14px', backgroundColor: inactiveColumns.includes(key) ? 'lightgray' : '#DEEFF5' }}>
+          <p style={{ margin: '0px', display: 'inline' }}>{key}</p>
+          <div style={{ display: 'inline', float: 'right' }}>
+            <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={!inactiveColumns.includes(key)} />
+          </div>
         </HeaderCell>
       ))}
     </Row>
@@ -94,9 +120,10 @@ const Upload = () => {
 
   const renderRows = () => dataset.slice(0, 100).map((row, index) => (
     <Row key={index}>
+      <DataCell style={{ width: '110px', fontWeight: 'bold' }}>{row['lot_number']}</DataCell>
       {Object.keys(row['data']).map((key) => {
         return (
-          <DataCell style={{ width: `${key.length * 8 + 20}px` }}>
+          <DataCell style={{ width: `${key.length * 5 + 110}px`, backgroundColor: inactiveColumns.includes(key) ? 'lightgray' : 'white' }}>
             {row['data'][key]}
           </DataCell>
         );
@@ -104,16 +131,48 @@ const Upload = () => {
     </Row>
   ));
 
+  const onSaveClick = async () => {
+    try {
+      const response = await fetch(REACT_APP_API_URL + 'api/update-inactive-columns/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: inactiveColumns
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('File uploaded successfully:', data);
+      } else {
+        console.error('File upload failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    }
+  }
+
   return (
     <div style={{ paddingLeft: '3%', paddingTop: '2%', flex: 1 }}>
-      <div className='upload-btn' onClick={() => {}}>
-        <FontAwesomeIcon icon={faCloudArrowUp} style={{  }} />
-        <p style={{ margin: '0px', marginTop: '10px', fontWeight: 'bold' }}>Upload New Data</p>
-        <p style={{ margin: '0px', marginTop: '10px', color: 'gray', fontSize: '12px' }}>.xlsx</p>
-        <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} style={{ position: 'absolute', top: '0', left: '0', opacity: '0', width: '100%', height: '100%', cursor: 'pointer' }} />
+      <div style={{ display: 'flex', paddingRight: '3%' }}>
+        <h1 style={{ margin: '0px' }}>My Dataset</h1>
+        
+        {changesMade && (
+          <div className="save-btn" style={{ marginLeft: '40px' }} onClick={() => onSaveClick()}>
+            <p style={{ margin: '0px', fontWeight: 'bold' }}>Save</p>
+          </div>
+        )}
+
+        <div className="upload-btn" style={{ position: 'relative', marginLeft: 'auto' }}>
+          <FontAwesomeIcon icon={faCloudArrowUp} />
+          <p style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold' }}>Upload File</p>
+          <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} style={{ position: 'absolute', top: '0', left: '0', opacity: '0', width: '100%', height: '100%', cursor: 'pointer' }} />
+        </div>
       </div>
 
-      <div style={{ height: '78%', overflow: 'hidden', overflowY: 'auto', marginTop: '40px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
+      <div style={{ height: '78%', overflow: 'hidden', overflowY: 'auto', marginTop: '30px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
         {renderHeaders()}
         {renderRows()}
       </div>

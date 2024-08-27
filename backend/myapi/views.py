@@ -10,8 +10,8 @@ from skmultiflow.trees import HoeffdingTreeRegressor
 import os
 import tempfile
 from django.shortcuts import get_object_or_404
-from .models import Batch, Measurement
-from .serializers import BatchSerializer, MeasurementSerializer
+from .models import Batch, Measurement, InactiveColumns
+from .serializers import BatchSerializer, MeasurementSerializer, InactiveColumnsSerializer
 from datetime import datetime, timedelta
 from django.utils import timezone
 import re
@@ -89,6 +89,7 @@ def add_measurement_direct(measurement_date, lot_number, total_viable_cells, via
         batch_data["phenotyping"] = phenotyping
     measurement = Measurement.objects.create(
         batch=batch,
+        lot_number=lot_number,
         measurement_date=measurement_date,
         data=batch_data
     )
@@ -403,6 +404,7 @@ def add_measurement(request):
     }
     measurement = Measurement.objects.create(
         batch=batch,
+        lot_number=batch.lot_number,
         measurement_date=measurement_date,
         data = batch_data
     )
@@ -507,4 +509,15 @@ def update_batch_status(request):
 
     return Response({'message': 'Batch status updated successfully'})
 
+@api_view(['GET'])
+def get_inactive_columns(request):
+    inactive_columns = InactiveColumns.objects.all()
+    serializer = InactiveColumnsSerializer(inactive_columns, many=True)
+    return Response(serializer.data)
 
+@api_view(['POST'])
+def update_inactive_columns(request):
+    names = request.data['data']
+    for name in names:
+        InactiveColumns.objects.get_or_create(name=name, defaults={'name': name})
+    return Response({'message': 'Success'})

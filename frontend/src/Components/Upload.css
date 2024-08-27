@@ -1,16 +1,35 @@
 .upload-btn {
-  border: 1px dotted #ccc;
-  padding: 20px 40px;
-  display: inline-flex;
-  flex-direction: column;
+  border: 2px dotted #ccc;
+  padding: 10px 20px;
+  display: flex;
   cursor: pointer;
   border-radius: 5px;
   align-items: center;
   justify-content: center;
   transition: 0.3s;
   position: relative;
+  color: gray;
 }
 
 .upload-btn:hover {
-  border: 1px solid black;
+  border: 2px solid black;
+  color: black;
+}
+
+.save-btn {
+  padding: 0px 20px;
+  background-color: #24a0ed;
+  margin: 0px;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-btn:hover {
+  background-color: #0e6aa3;
 }
