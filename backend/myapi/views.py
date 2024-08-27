@@ -113,13 +113,6 @@ def add_measurement_direct(measurement_date, lot_number, total_viable_cells, via
         data=batch_data
     )
     measurement.save()
-    #loader.get("hfe").make_observation_and_update({
-        #'lot_number': batch.lot_number,
-        #'measurement_date': measurement_date,
-        #'total_viable_cells': total_viable_cells,
-        #'viable_cell_density': viable_cell_density,
-        #'cell_diameter': cell_diameter
-    #})
     number_measurements_for_lot = Measurement.objects.filter(batch=batch).count()
 
     latest_measurement = Measurement.objects.filter(id=measurement.id, batch=batch).first()
