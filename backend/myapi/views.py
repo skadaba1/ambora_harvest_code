@@ -390,7 +390,6 @@ def sim_growth(request):
             measurement_id = data.get('measurementId')
 
             batch = Batch.objects.filter(id=batch_id).first()
-            measurement = Measurement.objects.filter(id=measurement_id, batch=batch).first()
 
             observed = []
             for observed_measurement in Measurement.objects.filter(batch=batch):
@@ -400,7 +399,7 @@ def sim_growth(request):
             # For example, simulate growth based on the measurement
 
             response_data = {
-                "PLACEHOLDER":None
+                "observations":observed
             }
             return Response(response_data, status=200)
 
