@@ -408,14 +408,18 @@ def sim_growth(request):
             batch = Batch.objects.filter(id=batch_id).first()
 
             observed = []
+            try:
+                tvcpred = inference_for_lot(batch.lot_number)
+            except Exception as e:
+                tvcpred  = []
             for observed_measurement in Measurement.objects.filter(batch=batch):
                 observed.append(MeasurementSerializer(observed_measurement).data)
         
             # Do something with the batch and measurement objects
             # For example, simulate growth based on the measurement
-
             response_data = {
-                "observations":observed
+                "observations":observed,
+                "predictions":tvcpred,
             }
             return Response(response_data, status=200)
 

@@ -23,13 +23,9 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const options = {
   scales: {
     x: {
-      type: 'time',
-      time: {
-        unit: 'day'
-      },
       title: {
         display: true,
-        text: 'Date'
+        text: 'Process Time from Day 1 (hours)'
       }
     },
     y: {
@@ -44,13 +40,9 @@ const options = {
 const options2 = {
   scales: {
     x: {
-      type: 'time',
-      time: {
-        unit: 'day'
-      },
       title: {
         display: true,
-        text: 'Date'
+        text: 'In-Process Hours'
       }
     },
     y: {

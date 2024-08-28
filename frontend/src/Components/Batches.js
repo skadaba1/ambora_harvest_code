@@ -63,34 +63,7 @@ const Batches = () => {
         borderColor: 'blue',
         showLine: false // This ensures it's a scatter plot without lines
       },
-      {
-        label: 'Predicted VCD',
-        data: {},
-        backgroundColor: 'lightgreen',
-        borderColor: 'lightgreen',
-        showLine: false // This ensures it's a scatter plot without lines
-      },
-      {
-        label: 'Observed VCD',
-        data: {},
-        backgroundColor: 'green',
-        borderColor: 'green',
-        showLine: false // This ensures it's a scatter plot without lines
-      },
-      {
-        label: 'Predicted CD',
-        data: {},
-        backgroundColor: 'pink',
-        borderColor: 'pink',
-        showLine: false // This ensures it's a scatter plot without lines
-      },
-      {
-        label: 'Observed CD',
-        data: {},
-        backgroundColor: 'red',
-        borderColor: 'red',
-        showLine: false // This ensures it's a scatter plot without lines
-      },
+
     ]
   });
   const lotNumberRef = useRef(null);
@@ -242,72 +215,64 @@ const Batches = () => {
   
       if (response.status === 200) {
         const result = await response.json();
+        let observations = result['observations'];
+        let predictions = result['predictions'];
         // Handle the result as needed
-        let labels = []
+        let labels_obs = []
+        let labels_pred = []
         let tvc_pred = []
         let tvc_obs = []
-        let vcd_pred = []
-        let vcd_obs = []
-        let cd_pred = []
-        let cd_obs = []
-        let i = 0;
-        for (const key in result['unified_obs_and_preds']) {
-          const date = new Date(result['unified_obs_and_preds'][key]['date']);
-          if (!isNaN(date.getTime())) {
-            labels.push(date);
-            const predictedValue = result['unified_obs_and_preds'][key]['values']['predicted']
-              && result['unified_obs_and_preds'][key]['values']['predicted']['total_viable_cells'] / 1000000000;
-            const observedValue = result['unified_obs_and_preds'][key]['values']['observed']
-              && result['unified_obs_and_preds'][key]['values']['observed']['total_viable_cells'] / 1000000000;
-            const predictedVcd = result['unified_obs_and_preds'][key]['values']['predicted']
-              && result['unified_obs_and_preds'][key]['values']['predicted']['viable_cell_density'];
-            const observedVcd = result['unified_obs_and_preds'][key]['values']['observed']
-              && result['unified_obs_and_preds'][key]['values']['observed']['viable_cell_density'];
-            const predictedCd = result['unified_obs_and_preds'][key]['values']['predicted']
-              && result['unified_obs_and_preds'][key]['values']['predicted']['cell_diameter'];
-            const observedCd = result['unified_obs_and_preds'][key]['values']['observed']
-              && result['unified_obs_and_preds'][key]['values']['observed']['cell_diameter'];
-            tvc_pred.push({ x: date, y: predictedValue });
-            tvc_obs.push({ x: date, y: observedValue });
-            vcd_pred.push({ x: date, y: predictedVcd });
-            vcd_obs.push({ x: date, y: observedVcd });
-            cd_pred.push({ x: date, y: predictedCd });
-            cd_obs.push({ x: date, y: observedCd });
-          }
+        for (let i = 0; i < observations.length; i++) {
+          labels_obs.push(observations[i]['data']['Process Time from Day 1 (hours)'])
+          tvc_obs.push(observations[i]['data']['TVC (cells)'])
+        }
+        for (let i = 0; i < predictions.length; i++) {
+          labels_pred.push(predictions[i]['Process Time from Day 1 (hours)'])
+          tvc_pred.push(predictions[i]['TVC (cells)'])
         }
         setChartDataA({
+          //labels: labels,
+          datasets: [
+            {
+              label: 'Predicted TVC',
+              data: tvc_pred.map((value, index) => ({ x: labels_pred[index], y: value })),
+              backgroundColor: 'lightblue',
+              borderColor: 'lightblue',
+              showLine: false, // This ensures it's a scatter plot without lines
+              pointRadius: 6,  // Adjust this value to make the points larger
+              pointHoverRadius: 8  // Adjust this value to make the points larger when hovered
+            },
+            {
+              label: 'Observed TVC',
+              data: tvc_obs.map((value, index) => ({ x: labels_obs[index], y: value })),
+              backgroundColor: 'blue',
+              borderColor: 'blue',
+              showLine: false, // This ensures it's a scatter plot without lines
+              pointRadius: 6,  // Adjust this value to make the points larger
+              pointHoverRadius: 8  // Adjust this value to make the points larger when hovered
+            },
+          ]
+        });
+        setChartDataB({
+          // labels: labels,
           datasets: [
             {
               label: 'Predicted TVC',
               data: tvc_pred,
               backgroundColor: 'lightblue',
               borderColor: 'lightblue',
-              showLine: false // This ensures it's a scatter plot without lines
+              showLine: false, // This ensures it's a scatter plot without lines
+              pointRadius: 8,  // Adjust this value to make the points larger
+              pointHoverRadius: 10  // Adjust this value to make the points larger when hovered
             },
             {
               label: 'Observed TVC',
               data: tvc_obs,
               backgroundColor: 'blue',
               borderColor: 'blue',
-              showLine: false // This ensures it's a scatter plot without lines
-            },
-          ]
-        });
-        setChartDataB({
-          datasets: [
-            {
-              label: 'Predicted VCD',
-              data: vcd_pred,
-              backgroundColor: 'lightgreen',
-              borderColor: 'lightgreen',
-              showLine: false // This ensures it's a scatter plot without lines
-            },
-            {
-              label: 'Observed VCD',
-              data: vcd_obs,
-              backgroundColor: 'green',
-              borderColor: 'green',
-              showLine: false // This ensures it's a scatter plot without lines
+              showLine: false, // This ensures it's a scatter plot without lines
+              pointRadius: 8,  // Adjust this value to make the points larger
+              pointHoverRadius: 10  // Adjust this value to make the points larger when hovered
             },
           ]
         });

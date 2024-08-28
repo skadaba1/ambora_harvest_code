@@ -115,14 +115,19 @@ def inference_for_lot(lot_number='31424010'):
     
     y0, t0 = get_y0_and_t0_for_lot(lot_df_dropped)
     phenotypes = get_phenotypes_for_lot(lot_df)
-    t = np.arange(t0, 16*24, 24)
+    t = np.arange(t0 + 4*24, 14*24, 24)
     y0 = torch.Tensor(y0, device=device)
     phenotypes = torch.Tensor(phenotypes, device=device)
-    t = torch.Tensor(t, device=device)
+    t = torch.Tensor(t, device=device) 
     predicted_data = ode_solution(y0, t, loader.get('node'), phenotypes)
     ypred = np.exp(predicted_data.cpu().detach().numpy().reshape(-1, 2)[:, 0]) # this is TVC only
     tplot = t.cpu().numpy()
-    print(ypred, tplot)
+
+    out = []
+    for indx, t in enumerate(tplot):
+        out.append({'Process Time from Day 1 (hours)': t, 'TVC (cells)': ypred[indx], 'Avg Viability (%)': ypred[indx]})
+
+    return out
 
 
 
