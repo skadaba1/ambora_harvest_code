@@ -20,10 +20,6 @@ from sklearn.metrics import r2_score
 from sklearn.inspection import permutation_importance
 from sklearn.tree import export_text
 
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from .views import get_measurement_data_ordered
-
 
 class Sherlock():
     
@@ -228,13 +224,3 @@ class SortingHat():
         importance_dict = dict(zip(feature_names, importance))
         accuracy = model.score(X_normalized, y)
         return {'feature_importance': importance_dict, 'accuracy': accuracy}
-    
-@api_view(['POST'])
-def fit_spa_model(request):
-    data = get_measurement_data_ordered()
-    y = np.array(data.pop(request.data['responseFeature']))
-    feature_names = list(data.keys())
-    x = np.array(list(data.values())).T  # Convert to numpy array and transpose
-    DI = Sherlock()
-    output = DI.log(x, y, feature_names)
-    return Response({'data': output})

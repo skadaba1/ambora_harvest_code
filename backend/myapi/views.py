@@ -11,6 +11,8 @@ import tempfile
 from django.shortcuts import get_object_or_404
 from .models import Batch, Measurement, InactiveColumns
 from .serializers import BatchSerializer, MeasurementSerializer, InactiveColumnsSerializer
+from .spa import Sherlock
+from .nODE import inference_for_lot
 from datetime import datetime, timedelta
 from django.utils import timezone
 import re
@@ -248,20 +250,19 @@ def get_correlations_data():
     return correlations_viable_cell_density, correlations_cell_diameter
 
 def get_measurement_data_ordered():
-    print("TEST")
     measurements = Measurement.objects.all()
     output = {
         'cell_diameter': [],
-        'viable_cell_density': [],
+        'avg_viability': [],
         'total_viable_cells': [],
         'process_time': []
     }
     for measurement in measurements:
-        if measurement.data["Avg Cell Diameter (um)"] and measurement.data["Avg Viability (%)"] and measurement.data["TVC (cells)"]:
+        if measurement.data["Avg Cell Diameter (um)"] and measurement.data["Avg Viability (%)"] and measurement.data["TVC (cells)"] and measurement.data["Process Time from Day 1 (hours)"]:
             output['cell_diameter'].append(measurement.data['Avg Cell Diameter (um)'])
-            output['viable_cell_density'].append(measurement.data['Avg Viability (%)'])
+            output['avg_viability'].append(measurement.data['Avg Viability (%)'])
             output['total_viable_cells'].append(measurement.data['TVC (cells)'])
-            output['process_time'].append(measurement.data['process_time'])
+            output['process_time'].append(measurement.data['Process Time from Day 1 (hours)'])
     return output
 
 	
@@ -317,8 +318,6 @@ def add_measurement(request):
 
 @api_view(['POST'])
 def get_measurements(request):
-    print('loc12')
-    print(len(request.data))
     measurements = None
     if len(request.data) == 0:
         measurements = Measurement.objects.all()
@@ -412,7 +411,6 @@ def update_inactive_columns(request):
 
 @api_view(['GET'])
 def get_measurement_data(request):
-    print("TEST", request.user)
     output = get_measurement_data_ordered()
     return Response(output)
 
@@ -422,3 +420,15 @@ def get_phenotyping_data_for_batch(request):
     if batch:
         return Response(batch.phenotyping_data)
     return Response({"Error" : "There is no batch with the provided lot number"})
+
+@api_view(['POST'])
+def fit_spa_model(request):
+    data = get_measurement_data_ordered()
+    y = np.array(data.pop(request.data['responseFeature']))
+    feature_names = list(data.keys())
+    x = np.array(list(data.values())).T  # Convert to numpy array and transpose
+    DI = Sherlock()
+    output = DI.log(x, y, feature_names)
+    return Response({'data': output})
+
+inference_for_lot('31424025')
