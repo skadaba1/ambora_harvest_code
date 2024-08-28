@@ -1,7 +1,7 @@
 import './Upload.css'
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudArrowUp, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
+import { faCloudArrowUp, faLayerGroup, faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { REACT_APP_API_URL } from "../consts";
 import styled from 'styled-components';
 import Switch from '@mui/material/Switch';
@@ -51,8 +51,12 @@ const Upload = () => {
         },
       });
       const data = await response.json();
-      console.log(data);
-      setDataset(data);
+      // console.log(data[0].flagged_columns);
+      const sortedData = data.sort((a, b) => {
+        return b.flagged_columns['flagged columns'].length - a.flagged_columns['flagged columns'].length;
+      });
+      console.log(sortedData);
+      setDataset(sortedData);
       const inactiveColumns = await fetch(REACT_APP_API_URL + 'api/get-inactive-columns/', {
         method: 'GET',
         headers: {
@@ -121,10 +125,18 @@ const Upload = () => {
 
   const renderRows = () => dataset.slice(0, 100).map((row, index) => (
     <Row key={index}>
-      <DataCell style={{ minWidth: '110px', fontWeight: 'bold' }}>{row['lot_number']}</DataCell>
+      <DataCell style={{ minWidth: '110px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {row['lot_number']}
+        {row['flagged_columns']['flagged columns'].length > 0 && <FontAwesomeIcon icon={faCircleExclamation} style={{ color: 'red', marginRight: '5px' }} />}
+      </DataCell>
       {Object.keys(row['data']).map((key) => {
         return (
-          <DataCell style={{ minWidth: `${key.length * 8 + 90}px`, backgroundColor: inactiveColumns.includes(key) ? 'lightgray' : 'white' }}>
+          <DataCell 
+            style={{ 
+              minWidth: `${key.length * 8 + 90}px`, 
+              backgroundColor: row['flagged_columns']['flagged columns'].includes(key) ? 'rgba(255, 0, 0, 0.4)' : inactiveColumns.includes(key) ? 'lightgray' : 'white',
+            }}
+          >
             {row['data'][key]}
           </DataCell>
         );

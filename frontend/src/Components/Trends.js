@@ -51,6 +51,8 @@ const models_abbr = {
 //   'pr': 'Polynomial Regression',
 // }
 
+const needsProcessDay = []
+
 const Trends = () => {
 
   const [responseFeature, setResponseFeature] = useState(""); // For selected response variable
@@ -104,34 +106,47 @@ const Trends = () => {
       },
     ],
   })
+  const [showProcessDayInput, setShowProcessDayInput] = useState(false);
+  const [processDay, setProcessDay] = useState(null);
 
-  const handleFeatureSelection = (feature, isResponse = false) => {
-      if (isResponse) {
-        setResponseFeature(feature);
-        setXFeature(""); // Reset x-axis feature if response is changed
-        fitSpaModel(feature);
-      } else {
-        setXFeature(feature);
-        if (responseFeature && measurementData[feature] && measurementData[responseFeature]) {
-          const data = {
-            labels: measurementData[feature],
-            datasets: [
-              {
-                label: `${responseFeature} vs ${feature} (Observed)`,
-                data: measurementData[feature].map((value, index) => ({ x: value, y: measurementData[responseFeature][index] })),
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-              },
-              {
-                label: `${responseFeature} (Predicted)`,
-                data: measurementData[feature].map((value, index) => ({ x: value, y: variableAnalysisData['predictions'][index] })),
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-              }
-            ]
-          };
-          setCorrelationData(data);
+  const handleFeatureSelection = (feature, isResponse = false, processDay = null) => {
+    if (isResponse) {
+      setResponseFeature(feature);
+      setProcessDay(processDay)
+      if (needsProcessDay.includes(feature)) {
+        if (!processDay) {
+          setShowProcessDayInput(true)
+          return
         }
+      } else {
+        setShowProcessDayInput(false)
       }
-    };
+      console.log(processDay)
+      setXFeature(""); // Reset x-axis feature if response is changed
+      fitSpaModel(feature);
+    } else {
+      setXFeature(feature);
+      if (responseFeature && measurementData[feature] && measurementData[responseFeature]) {
+        const data = {
+          labels: measurementData[feature],
+          datasets: [
+            {
+              label: `${responseFeature} vs ${feature} (Observed)`,
+              data: measurementData[feature].map((value, index) => ({ x: value, y: measurementData[responseFeature][index] })),
+              backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            },
+            {
+              label: `${responseFeature} (Predicted)`,
+              data: measurementData[feature].map((value, index) => ({ x: value, y: variableAnalysisData['predictions'][index] })),
+              backgroundColor: 'rgba(75, 192, 192, 0.5)',
+            }
+          ]
+        };
+        setCorrelationData(data);
+      }
+    }
+  };
+
   const fetchMeasurementData = async () => {
     try {
       const response = await fetch(REACT_APP_API_URL + 'api/get-measurement-data/', {
@@ -338,8 +353,6 @@ const Trends = () => {
     },
   };
 
-  console.log(variableAnalysisChart)
-
   return (
     <div style={{paddingLeft: '2%', paddingRight: '2%', paddingTop: '25px', paddingBottom: '3%', flex: 1, overflowY: 'auto' }}>
       <h1 style={{ margin: '0px' }}>Trends</h1>
@@ -365,6 +378,12 @@ const Trends = () => {
                 <option key={index} value={feature}>{feature}</option>
               ))}
             </select>
+            {showProcessDayInput && (
+              <>
+                <label style={{ marginRight: '10px', marginLeft: '20px', }}>Process Day:</label>
+                <input onChange={(e) => handleFeatureSelection(responseFeature, true, e.target.value)} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc', width: '60px' }} />
+              </>
+            )}
           </div>
           {/* <button 
             onClick={handleSPAClick} 
@@ -389,7 +408,7 @@ const Trends = () => {
           </button> */}
           <div style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '8px', marginLeft: 'auto'}}>
             <label style={{ marginRight: '10px'}}>X-axis Feature:</label>
-            <select onChange={(e) => handleFeatureSelection(e.target.value)} value={xFeature} disabled={!responseFeature} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }}>
+            <select onChange={(e) => handleFeatureSelection(e.target.value)} value={xFeature} disabled={!responseFeature || (needsProcessDay.includes(responseFeature) && !processDay)} style={{ padding: '5px', borderRadius: '5px', border: '1px solid #ccc' }}>
               <option value="">Select...</option>
               {Object.keys(measurementData).filter(feature => feature !== responseFeature).map((feature, index) => (
                 <option key={index} value={feature}>{feature}</option>
