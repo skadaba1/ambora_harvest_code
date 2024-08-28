@@ -112,11 +112,24 @@ const Upload = () => {
   const renderHeaders = () => (
     <Row>
       <HeaderCell style={{ minWidth: '110px', fontSize: '14px', fontWeight: 'bold' }}>LOT NUMBER</HeaderCell>
-      {Object.keys(dataset.length > 0 ? dataset[0]['data'] : {}).map((key) => (
-        <HeaderCell style={{ minWidth: `${(key.length * 8) + 90}px`, fontSize: '14px', backgroundColor: inactiveColumns.includes(key) ? 'lightgray' : '#DEEFF5' }}>
-          <p style={{ margin: '0px', display: 'inline' }}>{key}</p>
+      {Object.keys(dataset.length > 0 ? dataset[0]['data'] : {}).map((key) => {
+        if (!inactiveColumns.includes(key)) {
+          return (
+            <HeaderCell key={key} style={{ minWidth: `200px`, fontSize: '14px', backgroundColor: '#DEEFF5' }}>
+              <p style={{ margin: '0px', display: 'inline', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', }}>{key}</p>
+              <div style={{ display: 'inline', float: 'right' }}>
+                <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={true} />
+              </div>
+            </HeaderCell>
+          );
+        }
+        return null; // Return null if condition is not met to avoid rendering anything
+      })}
+      {inactiveColumns.map((key) => (
+        <HeaderCell key={key} style={{ minWidth: `200px`, fontSize: '14px', backgroundColor: 'lightgray' }}>
+          <p style={{ margin: '0px', display: 'inline', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', }}>{key}</p>
           <div style={{ display: 'inline', float: 'right' }}>
-            <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={!inactiveColumns.includes(key)} />
+            <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={false} />
           </div>
         </HeaderCell>
       ))}
@@ -130,17 +143,29 @@ const Upload = () => {
         {row['flagged_columns']['flagged columns'].length > 0 && <FontAwesomeIcon icon={faCircleExclamation} style={{ color: 'red', marginRight: '5px' }} />}
       </DataCell>
       {Object.keys(row['data']).map((key) => {
-        return (
-          <DataCell 
+        if (!inactiveColumns.includes(key)) {
+          return (
+            <DataCell 
+              style={{ 
+                minWidth: `200px`, 
+                backgroundColor: row['flagged_columns']['flagged columns'].includes(key) ? 'rgba(255, 0, 0, 0.4)' : 'white',
+              }}
+            >
+              {row['data'][key]}
+            </DataCell>
+          );
+        }
+      })}
+      {inactiveColumns.map((key) => (
+        <DataCell 
             style={{ 
-              minWidth: `${key.length * 8 + 90}px`, 
-              backgroundColor: row['flagged_columns']['flagged columns'].includes(key) ? 'rgba(255, 0, 0, 0.4)' : inactiveColumns.includes(key) ? 'lightgray' : 'white',
+              minWidth: `200px`, 
+              backgroundColor: row['flagged_columns']['flagged columns'].includes(key) ? 'rgba(255, 0, 0, 0.4)' : 'lightgray',
             }}
           >
             {row['data'][key]}
           </DataCell>
-        );
-      })}
+      ))}
     </Row>
   ));
 

@@ -26,6 +26,9 @@ class Sherlock():
         self.sorting_hat = SortingHat()
     
     def log(self, X, y, feature_names, cls=None):
+        X = np.array(X, dtype=np.float64)
+        y = np.array(y, dtype=np.float64)
+
         pearson = self.spa_pearson(X, y, feature_names)
         quadratic = self.spa_quadratic(X, y, feature_names)
         maximal = self.spa_maximal_corr(X, y, feature_names)
