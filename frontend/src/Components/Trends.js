@@ -42,6 +42,15 @@ const models_abbr = {
   'pr': 'Polynomial Regression',
 }
 
+// const models_acc = {
+//   'lr': 'R-Squared',
+//   'rf': 'Mean Squared Error',
+//   'svr': 'R-Squared',
+//   'pls': '',
+//   'dt': 'Decision Tree',
+//   'pr': 'Polynomial Regression',
+// }
+
 const Trends = () => {
 
   const [responseFeature, setResponseFeature] = useState(""); // For selected response variable
@@ -108,9 +117,14 @@ const Trends = () => {
             labels: measurementData[feature],
             datasets: [
               {
-                label: `${responseFeature} vs ${feature}`,
+                label: `${responseFeature} vs ${feature} (Observed)`,
                 data: measurementData[feature].map((value, index) => ({ x: value, y: measurementData[responseFeature][index] })),
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
+              },
+              {
+                label: `${responseFeature} (Predicted)`,
+                data: measurementData[feature].map((value, index) => ({ x: value, y: variableAnalysisData['predictions'][index] })),
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
               }
             ]
           };
@@ -388,7 +402,7 @@ const Trends = () => {
           <div style={{ width: '48%', paddingRight: '2%', borderRight: '1px solid black' }}>
             <div style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '30px', padding: '10px'}}>
               <p style={{ margin: '0px', marginBottom: '10px', fontWeight: 'bold' }}>Model: <span style={{ fontWeight: 'normal' }}>{models_abbr[variableAnalysisData['cls']] || 'Not Selected'}</span></p>
-              <p style={{ margin: '0px', fontWeight: 'bold' }}>Accuracy: <span style={{ fontWeight: 'normal' }}>{variableAnalysisData['accuracy'] ? variableAnalysisData['accuracy'].toFixed(5) : 'N/A'}</span></p>
+              <p style={{ margin: '0px', fontWeight: 'bold' }}>R-Squared: <span style={{ fontWeight: 'normal' }}>{variableAnalysisData['accuracy'] ? variableAnalysisData['accuracy'].toFixed(5) : 'N/A'}</span></p>
             </div>
             <Bar data={variableAnalysisChart} options={options} height={75} width={100}/>
           </div>

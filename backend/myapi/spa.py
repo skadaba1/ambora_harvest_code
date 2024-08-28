@@ -20,7 +20,6 @@ from sklearn.metrics import r2_score
 from sklearn.inspection import permutation_importance
 from sklearn.tree import export_text
 
-
 class Sherlock():
     
     def __init__(self):
@@ -129,6 +128,7 @@ class SortingHat():
         output['cls'] = cls
         output['feature_importance'] = fit_results['feature_importance']
         output['accuracy'] = fit_results['accuracy']
+        output['predictions'] = fit_results['predictions']
         if(cls == 'dt'):
             tree_text = fit_results['tree_text']
             print(tree_text)
@@ -164,9 +164,10 @@ class SortingHat():
         importance = model.feature_importances_
         importance_dict = dict(zip(feature_names, importance))
         accuracy = model.score(X_normalized, y)
+        predictions = model.predict(X_normalized)
         tree_texts = [export_text(tree, feature_names=feature_names) for tree in model.estimators_]
         
-        return {'feature_importance': importance_dict, 'accuracy': accuracy, 'model': model, 'tree_text': tree_texts}
+        return {'feature_importance': importance_dict, 'accuracy': accuracy, 'model': model, 'tree_text': tree_texts, 'predictions': predictions}
     
     # support vector regression
     def svr(self, X, y, feature_names, kernel='linear'):
@@ -179,8 +180,9 @@ class SortingHat():
         importance = result.importances_mean
         importance_dict = dict(zip(feature_names, importance))
         accuracy = model.score(X_normalized, y)
+        predictions = model.predict(X_normalized)
         
-        return {'feature_importance': importance_dict, 'accuracy': accuracy}
+        return {'feature_importance': importance_dict, 'accuracy': accuracy, 'predictions': predictions}
     
     # partial least squares
     def pls(self, X, y, feature_names):
@@ -190,7 +192,8 @@ class SortingHat():
         importance = np.abs(model.x_weights_[:, 0])
         importance_dict = dict(zip(feature_names, importance))
         accuracy = model.score(X_normalized, y)
-        return {'feature_importance': importance_dict, 'accuracy': accuracy}
+        predictions = model.predict(X_normalized)
+        return {'feature_importance': importance_dict, 'accuracy': accuracy, 'predictions': predictions}
     
     # decision tree
     def dt(self, X, y, feature_names):
@@ -200,8 +203,9 @@ class SortingHat():
         importance = model.feature_importances_
         importance_dict = dict(zip(feature_names, importance))
         accuracy = model.score(X_normalized, y)
+        predictions = model.predict(X_normalized)
         tree_text = export_text(model, feature_names=feature_names)
-        return {'feature_importance': importance_dict, 'accuracy': accuracy, 'model': model, 'tree_text':tree_text}
+        return {'feature_importance': importance_dict, 'accuracy': accuracy, 'model': model, 'tree_text': tree_text, 'predictions': predictions}
     
     # polynomial regression
     def pr(self, X, y, feature_names, degree=2):
@@ -213,7 +217,8 @@ class SortingHat():
         importance = np.abs(model.coef_)/np.sum(np.abs(model.coef_))
         importance_dict = dict(zip(poly.get_feature_names_out(feature_names), importance))
         accuracy = model.score(X_poly, y)
-        return {'feature_importance': importance_dict, 'accuracy': accuracy}
+        predictions = model.predict(X_poly)
+        return {'feature_importance': importance_dict, 'accuracy': accuracy, 'predictions': predictions}
     
     # linear regression
     def lr(self, X, y, feature_names):
@@ -223,4 +228,5 @@ class SortingHat():
         importance = np.abs(model.coef_)/np.sum(np.abs(model.coef_))
         importance_dict = dict(zip(feature_names, importance))
         accuracy = model.score(X_normalized, y)
-        return {'feature_importance': importance_dict, 'accuracy': accuracy}
+        predictions = model.predict(X_normalized)
+        return {'feature_importance': importance_dict, 'accuracy': accuracy, 'predictions': predictions}

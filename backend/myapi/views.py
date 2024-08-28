@@ -161,11 +161,11 @@ def process_file(file_path):
                print(f"Error processing sheet '{sheet_name}': {e}")
 
 def add_measurement_direct(data, phenotyping_data, batch_start_date, flagged_columns):
-    print('loc14')
     # print(process_time)
     batch, created = Batch.objects.get_or_create(lot_number = data["Lot Number"], defaults={'batch_start_date': batch_start_date})
     if phenotyping_data:
         batch.phenotyping_data = phenotyping_data
+        batch.save()
     measurement = Measurement.objects.create(
         batch=batch,
         lot_number=data["Lot Number"],
@@ -431,4 +431,4 @@ def fit_spa_model(request):
     output = DI.log(x, y, feature_names)
     return Response({'data': output})
 
-inference_for_lot('31424025')
+# inference_for_lot('31424025')

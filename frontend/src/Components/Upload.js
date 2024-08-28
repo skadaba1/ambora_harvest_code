@@ -106,9 +106,9 @@ const Upload = () => {
 
   const renderHeaders = () => (
     <Row>
-      <HeaderCell style={{ width: '110px', fontSize: '14px', fontWeight: 'bold' }}>LOT NUMBER</HeaderCell>
+      <HeaderCell style={{ minWidth: '110px', fontSize: '14px', fontWeight: 'bold' }}>LOT NUMBER</HeaderCell>
       {Object.keys(dataset.length > 0 ? dataset[0]['data'] : {}).map((key) => (
-        <HeaderCell style={{ width: `${(key.length * 5) + 110}px`, fontSize: '14px', backgroundColor: inactiveColumns.includes(key) ? 'lightgray' : '#DEEFF5' }}>
+        <HeaderCell style={{ minWidth: `${(key.length * 8) + 90}px`, fontSize: '14px', backgroundColor: inactiveColumns.includes(key) ? 'lightgray' : '#DEEFF5' }}>
           <p style={{ margin: '0px', display: 'inline' }}>{key}</p>
           <div style={{ display: 'inline', float: 'right' }}>
             <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={!inactiveColumns.includes(key)} />
@@ -120,10 +120,10 @@ const Upload = () => {
 
   const renderRows = () => dataset.slice(0, 100).map((row, index) => (
     <Row key={index}>
-      <DataCell style={{ width: '110px', fontWeight: 'bold' }}>{row['lot_number']}</DataCell>
+      <DataCell style={{ minWidth: '110px', fontWeight: 'bold' }}>{row['lot_number']}</DataCell>
       {Object.keys(row['data']).map((key) => {
         return (
-          <DataCell style={{ width: `${key.length * 5 + 110}px`, backgroundColor: inactiveColumns.includes(key) ? 'lightgray' : 'white' }}>
+          <DataCell style={{ minWidth: `${key.length * 8 + 90}px`, backgroundColor: inactiveColumns.includes(key) ? 'lightgray' : 'white' }}>
             {row['data'][key]}
           </DataCell>
         );
@@ -155,7 +155,7 @@ const Upload = () => {
   }
 
   return (
-    <div style={{ paddingLeft: '3%', paddingTop: '2%', flex: 1 }}>
+    <div style={{ paddingLeft: '3%', paddingTop: '2%', width: '77%' }}>
       <div style={{ display: 'flex', paddingRight: '3%' }}>
         <h1 style={{ margin: '0px' }}>My Dataset</h1>
         
@@ -172,7 +172,7 @@ const Upload = () => {
         </div>
       </div>
 
-      <div style={{ height: '90%', overflow: 'hidden', overflowY: 'auto', marginTop: '30px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
+      <div style={{ height: '90%', width: '100%', overflowY: 'auto', overflowX: 'auto', marginTop: '30px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
         {renderHeaders()}
         {renderRows()}
       </div>
