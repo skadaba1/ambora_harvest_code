@@ -400,10 +400,11 @@ const Trends = () => {
         {/* {xFeature && responseFeature && ( */}
         <div style={{ display: 'flex' }}>
           <div style={{ width: '48%', paddingRight: '2%', borderRight: '1px solid black' }}>
-            <div style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '30px', padding: '10px'}}>
+            <div style={{ border: '1px solid #ccc', borderRadius: '5px', marginBottom: '20px', padding: '10px'}}>
               <p style={{ margin: '0px', marginBottom: '10px', fontWeight: 'bold' }}>Model: <span style={{ fontWeight: 'normal' }}>{models_abbr[variableAnalysisData['cls']] || 'Not Selected'}</span></p>
               <p style={{ margin: '0px', fontWeight: 'bold' }}>R-Squared: <span style={{ fontWeight: 'normal' }}>{variableAnalysisData['accuracy'] ? variableAnalysisData['accuracy'].toFixed(5) : 'N/A'}</span></p>
             </div>
+            <p style={{ margin: '0px', fontWeight: 'bold' }}>Feature Importance</p>
             <Bar data={variableAnalysisChart} options={options} height={75} width={100}/>
           </div>
           <div style={{ width: '48%', paddingLeft: '2%' }}>

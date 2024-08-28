@@ -33,3 +33,21 @@
 .save-btn:hover {
   background-color: #0e6aa3;
 }
+
+.dataset-name {
+  padding: 15px 20px;
+  margin: 0px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.dataset-name-selected {
+  background-color: #222222;
+  color: white;
+  padding: 15px 20px;
+  margin: 0px;
+}
+
+.dataset-name:hover {
+  background-color: #e9e9e9;
+}

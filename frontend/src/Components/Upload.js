@@ -1,7 +1,7 @@
 import './Upload.css'
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudArrowUp, faInfo } from '@fortawesome/free-solid-svg-icons';
+import { faCloudArrowUp, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { REACT_APP_API_URL } from "../consts";
 import styled from 'styled-components';
 import Switch from '@mui/material/Switch';
@@ -36,6 +36,7 @@ const Upload = () => {
   const [dataset, setDataset] = useState([]);
   const [inactiveColumns, setInactiveColumns] = useState([]);
   const [changesMade, setChangesMade] = useState(false);
+  const [selectedDataset, setSelectedDataset] = useState('Process Monitoring');
 
   useEffect(() => {
     getAllMeasurements();
@@ -155,9 +156,15 @@ const Upload = () => {
   }
 
   return (
-    <div style={{ paddingLeft: '3%', paddingTop: '2%', width: '77%' }}>
+    <>
+    <div style={{ minWidth: '16%', borderRight: '1px solid lightgray' }}>
+      <h2 style={{ margin: '0px', marginBottom: '0px', padding: '20px' }}>Datasets</h2>
+      <p className={ selectedDataset === 'Process Monitoring' ? 'dataset-name-selected' : 'dataset-name'} onClick={() => setSelectedDataset('Process Monitoring')}>Process Monitoring</p>
+      <p className={ selectedDataset === 'Quality Control' ? 'dataset-name-selected' : 'dataset-name'} onClick={() => setSelectedDataset('Quality Control')}>Quality Control</p>
+    </div>
+    <div style={{ paddingLeft: '2%', paddingTop: '2%', width: '65%' }}>
       <div style={{ display: 'flex', paddingRight: '3%' }}>
-        <h1 style={{ margin: '0px' }}>My Dataset</h1>
+        <h1 style={{ margin: '0px' }}>{selectedDataset}</h1>
         
         {changesMade && (
           <div className="save-btn" style={{ marginLeft: '40px' }} onClick={() => onSaveClick()}>
@@ -167,16 +174,17 @@ const Upload = () => {
 
         <div className="upload-btn" style={{ position: 'relative', marginLeft: 'auto' }}>
           <FontAwesomeIcon icon={faCloudArrowUp} />
-          <p style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold' }}>Upload File</p>
+          <p style={{ margin: '0px', marginLeft: '10px', fontWeight: 'bold' }}>Upload New File</p>
           <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} style={{ position: 'absolute', top: '0', left: '0', opacity: '0', width: '100%', height: '100%', cursor: 'pointer' }} />
         </div>
       </div>
 
-      <div style={{ height: '90%', width: '100%', overflowY: 'auto', overflowX: 'auto', marginTop: '30px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
+      <div style={{ height: '90%', width: '100%', overflowY: 'auto', overflowX: 'auto', marginTop: '20px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
         {renderHeaders()}
         {renderRows()}
       </div>
     </div>
+    </>
   ) 
 }
 
