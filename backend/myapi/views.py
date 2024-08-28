@@ -17,9 +17,10 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 import re
 
-
 date_format = "%Y-%m-%dT%H:%M"  # For 'datetime-local' input type
 desired_format = "%Y-%m-%dT%H:%M"
+phenotyping_columns = ["CD3%", "CD8%", "CD4%", "CM %", "Naive %", "Effector %", "EM %", "CD14%", "CD19%", "CD20%", "CD56%"]
+initial_active_columns = {"Avg Cell Diameter (um)", "Avg Viability (%)", "TVC (cells)", "Process Time from Day 1 (hours)"}
 
 def convert_datetime_string(date_string):
     try:
@@ -104,6 +105,9 @@ def process_file(file_path):
     all_columns.remove("Process Day")
     all_columns = list(all_columns)
     all_columns.insert(0, "Process Day")
+    for column in all_columns:
+        if column not in initial_active_columns:
+            InactiveColumns.objects.get_or_create(name = column)
     for sheet_name in sheet_names:
         if('_Process Data' in sheet_name and "Master" not in sheet_name):
             try:
@@ -159,7 +163,7 @@ def process_file(file_path):
                         phenotyping_data = None
                         if data["Unit Ops"] == "CliniMACS":
                             phenotyping_data = {}
-                            for column in ["CD3%", "CD8%", "CD4%", "CM %", "Naive %", "Effector %", "EM %", "CD14%", "CD19%", "CD20%", "CD56%"]:
+                            for column in phenotyping_columns:
                                 phenotyping_data[column] = data[column]
                         flagged_columns = {"flagged columns" : list(flagged_columns)}
                         add_measurement_output = add_measurement_direct(data, phenotyping_data, batch_start_date, flagged_columns)
@@ -273,20 +277,32 @@ def get_correlations_data():
 
 def get_measurement_data_ordered():
     measurements = Measurement.objects.all()
-    output = {
-        'cell_diameter': [],
-        'avg_viability': [],
-        'total_viable_cells': [],
-        'process_time': []
-    }
+    
+    first_measurement = measurements.first()
+    if not first_measurement:
+        return {}
+    active_columns = set(first_measurement.data.keys())
+    inactive_columns = InactiveColumns.objects.all()
+    for inactive_column in inactive_columns:
+        active_columns.remove(inactive_column.name)
+       
+    output = {key : [] for key in active_columns}
     for measurement in measurements:
-        if measurement.data["Avg Cell Diameter (um)"] and measurement.data["Avg Viability (%)"] and measurement.data["TVC (cells)"] and measurement.data["Process Time from Day 1 (hours)"]:
-            output['cell_diameter'].append(measurement.data['Avg Cell Diameter (um)'])
-            output['avg_viability'].append(measurement.data['Avg Viability (%)'])
-            output['total_viable_cells'].append(measurement.data['TVC (cells)'])
-            output['process_time'].append(measurement.data['Process Time from Day 1 (hours)'])
+        measurement_values = []
+        for key in output.keys():
+            if key in phenotyping_columns:
+                phenotyping_data = measurement.batch.phenotyping_data
+                if not phenotyping_data or not phenotyping_data[key]:
+                    break 
+                measurement_values.append(phenotyping_data[key])
+            elif not measurement.data[key]:
+                break
+            else:
+                measurement_values.append(measurement.data[key])
+        if len(measurement_values) == len(output):
+            for key, measurement_value in zip(output.keys(), measurement_values):
+                output[key].append(measurement_value)
     return output
-
 	
 @api_view(['GET'])
 def Batches(request):
