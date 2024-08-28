@@ -33,18 +33,6 @@ def convert_datetime_string(date_string):
     formatted_string = dt.strftime(desired_format)
     return formatted_string
 
-# Function to read Excel file and process data
-def process_excel(file_path, sheet_name):
-    df = pd.read_excel(file_path, sheet_name, header=1)
-    # Columns to check for NaNs
-    columns_to_check = ['Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)']
-
-    # Remove rows where any of the specified columns have NaNs
-    df_cleaned = df.dropna(subset=columns_to_check)
-    df_cleaned = df_cleaned.dropna(axis=1, how='all')
-    df_cleaned = df_cleaned[['Lot Number', 'Avg Viability (%)', 'Avg Cell Diameter (um)', 'TVC (cells)', 'Unit Op Start Time 1', 'Unit Op Finish Time 1', 'Process Day', 'Process Time from Day 1 (hours)']]
-    return df_cleaned
-
 def interpret_datetime(timedelta_obj):
     if isinstance(timedelta_obj, np.timedelta64):
         # Handle numpy.timedelta64
@@ -62,6 +50,41 @@ def days_difference(later_time, earlier_time):
 	later_time = pd.Timestamp(datetime.strptime(later_time, desired_format))
 	earlier_time = pd.Timestamp(datetime.strptime(earlier_time, desired_format))
 	return (later_time.date() - earlier_time.date()).days
+
+def clean_cell(cell):
+    cell = re.sub(r'\(.*?(\)|$)', '', str(cell))
+    cell = cell.replace('*', '')
+    cell = re.sub(r'(\d+(\.\d+)?)[xX]\s*10\^?(\d+)', lambda m: str(float(m.group(1)) * 10**int(m.group(3))), cell)
+    try:
+        return float(cell.strip())
+    except ValueError:
+        return cell
+
+def extract_lot_number(text):
+    text = text.strip()
+    text = text[4:].strip()
+    text = text.split("\n")[0]
+    return text
+
+def parse_and_add_qdd(df):
+    for index, row in df.iterrows():
+        row_dict = row.to_dict()
+        lot_number = row_dict['Lot Number']
+        del row_dict['Lot Number']
+        del row_dict['Comments']
+        #print(lot_number, row_dict)
+        batch, created = Batch.objects.get_or_create(lot_number=lot_number, defaults={'batch_start_date':datetime.now()})
+        batch.qc_data = json.dumps(row_dict)
+        batch.save()
+
+def process_qc_file(file_path):
+    df = pd.read_excel(file_path, sheet_name='Current GMP FDP Release ', header=1)
+    # Apply the function to the entire DataFrame
+    df = df.applymap(clean_cell)
+    df = df.rename(columns={'Unnamed: 0': 'Lot Number', 'Unnamed: 7': "FMC63 A/B (CD19)", "Vector Copy Number": "LEU16 (CD20)", "Unnamed: 17": "Comments"})
+    df = df.iloc[1:]
+    df['Lot Number'] = df['Lot Number'].apply(extract_lot_number)
+    parse_and_add_qdd(df)
 
 def process_file(file_path):
     batches = Batch.objects.all()
@@ -87,7 +110,6 @@ def process_file(file_path):
                 print()
                 print("SHEET: " + sheet_name)
                 df = pd.read_excel(file_path, sheet_name, header = 1)
-                # df = process_excel(file_path, sheet_name)
                 df.rename(columns = {"TVC (cell/mL)" : "TVC (cells)"}, inplace = True)
                 harvested = False
                 batch_id = None
@@ -331,7 +353,6 @@ def get_measurements(request):
 def upload_process_file(request):
     if request.method == 'POST' and request.FILES['file']:
         file = request.FILES['file']
-        
         # Create a temporary file path
         with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
             for chunk in file.chunks():
@@ -340,7 +361,10 @@ def upload_process_file(request):
 
         try:
             # Call your existing function to process the Excel file
-            process_file(tmp_file_path)
+            if("Process Monitoring" in file.name):
+                process_file(tmp_file_path)
+            elif('QC' in file.name):
+                process_qc_file(tmp_file_path)
             return Response({'status': 'success'}, status=200)
         except Exception as e:
             print(e)
