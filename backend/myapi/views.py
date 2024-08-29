@@ -281,7 +281,7 @@ def get_active_columns():
     measurement = Measurement.objects.all().first()
     if not measurement:
         return set()
-    active_columns = set(first_measurement.data.keys())
+    active_columns = set(measurement.data.keys())
     for inactive_column in InactiveColumns.objects.all():
         active_columns.remove(inactive_column.name)
     return active_columns
@@ -289,7 +289,7 @@ def get_active_columns():
 def get_qc_columns():
     for batch in Batch.objects.all():
         if batch.qc_data:
-            return set(batch.qc_data.keys())
+            return set(json.loads(batch.qc_data).keys())
     return set()
 
 def get_measurement_data_ordered(process_day = None):
@@ -306,7 +306,6 @@ def get_measurement_data_ordered(process_day = None):
                     continue
             elif measurement.data["Unit Ops"] != "Cell Culture Monitor":
                 continue
-        print(measurement.data["Unit Ops"])
         measurement_values = []
         for key in output.keys():
             if key in phenotyping_columns:
