@@ -106,6 +106,7 @@ const Trends = () => {
       },
     ],
   })
+  const [variableAnalysisChartLoading, setVariableAnalysisChartLoading] = useState(false)
   const [showProcessDayInput, setShowProcessDayInput] = useState(false);
   const [processDay, setProcessDay] = useState(null);
 
@@ -291,6 +292,7 @@ const Trends = () => {
   }
 
   const fitSpaModel = async (responseFeature) => {
+    setVariableAnalysisChartLoading(true)
     try {
       const response = await fetch(REACT_APP_API_URL + 'api/fit-spa-model/', {
         method: 'POST',
@@ -305,7 +307,10 @@ const Trends = () => {
       console.log(data);
       setVariableAnalysisData(data.data);
       setVariableAnalysisChart((prevState) => ({
-        labels: Object.keys(data.data['feature_importance']),
+        labels: Object.keys(data.data['feature_importance']).map(label =>
+          {
+            return label.length > 15 ? label.substring(0, 15) + "..." : label 
+          }),
         datasets: [
           {
             ...prevState.datasets[0],
@@ -313,8 +318,10 @@ const Trends = () => {
           },
         ],
       }));
+      setVariableAnalysisChartLoading(false)
     } catch (error) {
-      console.error('Error fetching data:', error);
+        setVariableAnalysisChartLoading(false)
+        console.error('Error fetching data:', error);
     }
   }
 
@@ -423,8 +430,16 @@ const Trends = () => {
               <p style={{ margin: '0px', marginBottom: '10px', fontWeight: 'bold' }}>Model: <span style={{ fontWeight: 'normal' }}>{models_abbr[variableAnalysisData['cls']] || 'Not Selected'}</span></p>
               <p style={{ margin: '0px', fontWeight: 'bold' }}>R-Squared: <span style={{ fontWeight: 'normal' }}>{variableAnalysisData['accuracy'] ? variableAnalysisData['accuracy'].toFixed(5) : 'N/A'}</span></p>
             </div>
-            <p style={{ margin: '0px', fontWeight: 'bold' }}>Feature Importance</p>
-            <Bar data={variableAnalysisChart} options={options} height={75} width={100}/>
+            {variableAnalysisChartLoading ? (
+              <div style = {{display : "flex", justifyContent : "center"}}>  
+                <p style = {{margin : "0px", fontWeight : "bold"}}> Generating Chart... </p>
+              </div>
+            ) : (
+              <div>  
+                <p style={{ margin: '0px', fontWeight: 'bold' }}>Feature Importance</p>
+                <Bar data={variableAnalysisChart} options={options} height={75} width={100}/>
+              </div>
+            )}
           </div>
           <div style={{ width: '48%', paddingLeft: '2%' }}>
             <Scatter data={correlationData} options={scatterOptions} height={1} width={1}/>

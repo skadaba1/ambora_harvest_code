@@ -277,19 +277,36 @@ def get_correlations_data():
         current_batch += 1
     return correlations_viable_cell_density, correlations_cell_diameter
 
-def get_measurement_data_ordered():
-    measurements = Measurement.objects.all()
-    
-    first_measurement = measurements.first()
-    if not first_measurement:
-        return {}
+def get_active_columns():
+    measurement = Measurement.objects.all().first()
+    if not measurement:
+        return set()
     active_columns = set(first_measurement.data.keys())
-    inactive_columns = InactiveColumns.objects.all()
-    for inactive_column in inactive_columns:
+    for inactive_column in InactiveColumns.objects.all():
         active_columns.remove(inactive_column.name)
-       
+    return active_columns
+
+def get_qc_columns():
+    for batch in Batch.objects.all():
+        if batch.qc_data:
+            return set(batch.qc_data.keys())
+    return set()
+
+def get_measurement_data_ordered(process_day = None):
+    active_columns = get_active_columns()
+    qc_columns = get_qc_columns()
     output = {key : [] for key in active_columns}
+    measurements = Measurement.objects.all()
     for measurement in measurements:
+        if process_day:
+            if measurement.data["Process Day"] != process_day:
+                continue
+            elif process_day == 1:
+                if measurement.data["Unit Ops"] != "Sepax - Culture Wash":
+                    continue
+            elif measurement.data["Unit Ops"] != "Cell Culture Monitor":
+                continue
+        print(measurement.data["Unit Ops"])
         measurement_values = []
         for key in output.keys():
             if key in phenotyping_columns:
@@ -297,6 +314,11 @@ def get_measurement_data_ordered():
                 if not phenotyping_data or not phenotyping_data[key]:
                     break 
                 measurement_values.append(phenotyping_data[key])
+            elif key in qc_columns:
+                qc_data = measurement.batch.qc_data
+                if not qc_data or not qc_data[key]:
+                    break
+                measurement_values.append(qc_data[key])
             elif not measurement.data[key]:
                 break
             else:
@@ -305,7 +327,16 @@ def get_measurement_data_ordered():
             for key, measurement_value in zip(output.keys(), measurement_values):
                 output[key].append(measurement_value)
     return output
-	
+
+@api_view(["GET"])
+def check_if_process_day_required(request):
+    active_columns = get_active_columns()
+    qc_columns = get_qc_columns()
+    for active_column in active_columns:
+        if active_column in phenotyping_columns or active_column in qc_columns:
+            return Response({"process_day_required" : True})
+    return Response({"process_day_required" : False})
+
 @api_view(['GET'])
 def Batches(request):
     batches = Batch.objects.all()
