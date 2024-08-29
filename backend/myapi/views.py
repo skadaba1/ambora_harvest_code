@@ -73,9 +73,11 @@ def parse_and_add_qdd(df):
         lot_number = row_dict['Lot Number']
         del row_dict['Lot Number']
         del row_dict['Comments']
-        #print(lot_number, row_dict)
+        print(lot_number, row_dict)
         batch, created = Batch.objects.get_or_create(lot_number=lot_number, defaults={'batch_start_date':datetime.now()})
         batch.qc_data = json.dumps(row_dict)
+        if type(row_dict['Appearance']) == str and 'terminat' in row_dict['Appearance']:
+            batch.status = 'Terminated'
         batch.save()
 
 def process_qc_file(file_path):

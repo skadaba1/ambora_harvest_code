@@ -304,7 +304,7 @@ const Batches = () => {
             <FontAwesomeIcon icon={faTrash} onClick={deleteAllBatches} size='lg' style={{ marginLeft: '20px', cursor: 'pointer'}} />
           </div>
           <div style={{ display: 'flex', width: '95%', padding: '20px', borderBottom: '1px solid lightgray', justifyContent: 'space-between' }}>
-            <p style={{ margin: '0px', width: '50px', display: 'flex', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px' }}>Status</p>
+            <p style={{ margin: '0px', width: '70px', display: 'flex', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px' }}>Status</p>
             <p style={{ margin: '0px', width: '130px', fontWeight: 'bold', fontSize: '16px' }}>Lot Number</p>
             <p style={{ margin: '0px', width: '130px', fontWeight: 'bold', fontSize: '16px' }}>Batch Start Date</p>
             <p style={{ margin: '0px', width: '200px', fontWeight: 'bold', fontSize: '16px' }}>Predicted Harvest Date</p>
@@ -317,10 +317,10 @@ const Batches = () => {
                 setBatchesView({ id: item.id, lotNumber: item.lot_number, status: item.status });
                 getMeasurements(item.id);
               }}
-              style={{ display: 'flex', width: '95%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px' }}
+              style={{ display: 'flex', width: '95%', padding: '10px', paddingLeft: '20px', paddingRight: '20px', justifyContent: 'space-between', marginTop: '8px', borderRadius: '10px', alignItems: 'center' }}
             >
-              <p style={{ margin: '0px', width: '50px', alignItems: 'center', display: 'flex', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
-                { item.status === 'Ongoing' ? <FontAwesomeIcon icon={faCircle} color={'#4CBB17'} size='lg'/> : 'Done' }
+              <p style={{ margin: '0px', width: '70px', alignItems: 'center', display: 'flex', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px', color: item.status === 'Terminated' ? 'red' : 'black' }}>
+                { item.status === 'Ongoing' ? <FontAwesomeIcon icon={faCircle} color={'#4CBB17'} size='lg'/> : item.status === 'Terminated' ? 'Terminated' : 'Harvested' }
               </p>
               <p style={{ margin: '0px', width: '130px', fontWeight: 'bold', fontSize: '14px' }}>{item.lot_number}</p>
               <div style={{ width: '130px' }}>
