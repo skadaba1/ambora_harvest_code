@@ -209,11 +209,11 @@ const Trends = () => {
             if (batch.data) {
               try {
                 const batchData = await getMeasurementsForBatch(batch.id);
-                // console.log(batchData);
+                console.log(batchData);
         
                 datasets.push({
                   label: batch.lot_number + '(' + batch.data.tags[0] + ')',
-                  data: labels.map(label => batchData[label - 1] !== undefined ? batchData[label - 1] : null), // Use null for missing points
+                  data: labels.map(label => batchData[label] !== undefined ? batchData[label] : null), // Use null for missing points
                   fill: false,
                   backgroundColor: lineColor[batch.data.tags[0]],
                   borderColor: lineColor[batch.data.tags[0]],
@@ -228,6 +228,7 @@ const Trends = () => {
         }
 
         const newDatasets = await processBatches(result);
+        console.log(newDatasets);
         setLineChartData((prevState) => ({
           ...prevState, // Keep the other properties unchanged
           labels: labels, // Update with new data values
@@ -270,10 +271,12 @@ const Trends = () => {
 
       if (response.status === 200) {
         const result = await response.json();
+        console.log(result);
         // calculate days from first day
         const firstMeasurementDate = new Date(
           Math.min(...result.map((item) => new Date(item.measurement_date)))
         );
+        console.log(firstMeasurementDate)
         // console.log(firstMeasurementDate)
         let output = {};
         result.map((item) => {
@@ -285,9 +288,15 @@ const Trends = () => {
           //   ...item,
           //   days_since_first_measurement: Math.round(daysDifference), // Round the result to nearest whole number
           // };
-          output[Math.round(daysDifference)] = item.data.total_viable_cells / 1000000000
+          // output[Math.round(daysDifference)] = item.data['TVC (cells)'] / 1000000000
+          console.log(item.data['TVC (cells)'])
+          if (item.data['TVC (cells)']) {
+            output[item.data['Process Day']] = item.data['TVC (cells)'] / 1000000000
+          }
           // return [Math.round(daysDifference), item.data.total_viable_cells]
         });
+
+        console.log(output);
         return output;
       } else {
         const errorData = await response.json();

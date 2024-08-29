@@ -194,10 +194,34 @@ const Upload = () => {
 
   return (
     <>
-    <div style={{ minWidth: '16%', borderRight: '1px solid lightgray' }}>
+    {/* <div style={{ minWidth: '16%', borderRight: '1px solid lightgray' }}>
       <h2 style={{ margin: '0px', marginBottom: '0px', padding: '20px' }}>Datasets</h2>
       <p className={ selectedDataset === 'Process Monitoring' ? 'dataset-name-selected' : 'dataset-name'} onClick={() => setSelectedDataset('Process Monitoring')}>Process Monitoring</p>
       <p className={ selectedDataset === 'Quality Control' ? 'dataset-name-selected' : 'dataset-name'} onClick={() => setSelectedDataset('Quality Control')}>Quality Control</p>
+    </div> */}
+    <div style={{ minWidth: '16%', borderRight: '1px solid lightgray', height: '100%', overflow: 'auto' }}>
+      <h2 style={{ margin: '0px', marginBottom: '0px', padding: '20px' }}>Active Fields</h2>
+      {Object.keys(dataset.length > 0 ? dataset[0]['data'] : {}).map((key) => {
+        if (!inactiveColumns.includes(key)) {
+          return (
+            <HeaderCell key={key} style={{ minWidth: `200px`, fontSize: '14px', backgroundColor: '#DEEFF5' }}>
+              <p style={{ margin: '0px', display: 'inline', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', }}>{key}</p>
+              <div style={{ display: 'inline', float: 'right' }}>
+                <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={true} />
+              </div>
+            </HeaderCell>
+          );
+        }
+        return null; // Return null if condition is not met to avoid rendering anything
+      })}
+      {inactiveColumns.map((key) => (
+        <HeaderCell key={key} style={{ minWidth: `200px`, fontSize: '14px', backgroundColor: 'lightgray' }}>
+          <p style={{ margin: '0px', display: 'inline', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', }}>{key}</p>
+          <div style={{ display: 'inline', float: 'right' }}>
+            <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={false} />
+          </div>
+        </HeaderCell>
+      ))}
     </div>
     <div style={{ paddingLeft: '2%', paddingTop: '2%', width: '65%' }}>
       <div style={{ display: 'flex', paddingRight: '3%' }}>
