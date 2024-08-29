@@ -86,7 +86,7 @@ const Batches = () => {
             } else if (a.status !== "Ongoing" && b.status === "Ongoing") {
                 return 1; // b should come before a
             } else {
-                return 0; // a and b are equal in terms of sorting criteria
+                return new Date(b.batch_start_date) - new Date(a.batch_start_date); // a and b are equal in terms of sorting criteria
             }
         });
         console.log(result);
