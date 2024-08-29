@@ -114,13 +114,8 @@ const Trends = () => {
     if (isResponse) {
       setResponseFeature(feature);
       setProcessDay(processDay)
-      if (needsProcessDay.includes(feature)) {
-        if (!processDay) {
-          setShowProcessDayInput(true)
-          return
-        }
-      } else {
-        setShowProcessDayInput(false)
+      if (showProcessDayInput && !processDay) {
+        return
       }
       console.log(processDay)
       setXFeature(""); // Reset x-axis feature if response is changed
@@ -162,6 +157,20 @@ const Trends = () => {
       }
       const data = await response.json();
       setMeasurementData(data);
+
+      const response2 = await fetch(REACT_APP_API_URL + 'api/check-if-process-day-required/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response2.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const checkProcessDay = await response2.json();
+      console.log(checkProcessDay)
+      setShowProcessDayInput(checkProcessDay['process_day_required']);
     } catch (error) {
       console.error('Error fetching measurement data:', error);
     }
@@ -198,7 +207,6 @@ const Trends = () => {
           }
           for (const batch of result) {
             if (batch.data) {
-              console.log(batch);
               try {
                 const batchData = await getMeasurementsForBatch(batch.id);
                 // console.log(batchData);
@@ -262,7 +270,6 @@ const Trends = () => {
 
       if (response.status === 200) {
         const result = await response.json();
-        console.log(result)
         // calculate days from first day
         const firstMeasurementDate = new Date(
           Math.min(...result.map((item) => new Date(item.measurement_date)))
