@@ -89,9 +89,9 @@ def process_qc_file(file_path):
     parse_and_add_qdd(df)
 
 def process_file(file_path):
-    batches = Batch.objects.all()
-    batches.delete()
-    
+    Batch.objects.all().delete()
+    InactiveColumns.objects.all().delete()
+
     file_path = file_path
     excel_file = pd.ExcelFile(file_path)
     sheet_names = excel_file.sheet_names
@@ -103,9 +103,7 @@ def process_file(file_path):
             all_columns.update(df.columns.tolist())
     
     all_columns.remove("TVC (cell/mL)")
-    all_columns.remove("Process Day")
     all_columns = list(all_columns)
-    all_columns.insert(0, "Process Day")
     for column in all_columns:
         if column not in initial_active_columns:
             InactiveColumns.objects.get_or_create(name = column)
@@ -313,8 +311,10 @@ def get_measurement_data_ordered(process_day = None):
                     break 
                 measurement_values.append(phenotyping_data[key])
             elif key in qc_columns:
-                qc_data = measurement.batch.qc_data
-                if not qc_data or not qc_data[key]:
+                if not measurement.batch.qc_data:
+                    break
+                qc_data = json.loads(measurement.batch.qc_data)
+                if not qc_data[key]:
                     break
                 measurement_values.append(qc_data[key])
             elif not measurement.data[key]:
