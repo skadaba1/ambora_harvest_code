@@ -296,7 +296,6 @@ const Trends = () => {
           // return [Math.round(daysDifference), item.data.total_viable_cells]
         });
 
-        console.log(output);
         return output;
       } else {
         const errorData = await response.json();

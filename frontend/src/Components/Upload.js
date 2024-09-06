@@ -110,27 +110,27 @@ const Upload = () => {
   }
 
   const renderHeaders = () => (
-    <Row>
+    <Row style={{ borderBottom: '1.5px solid gray' }}>
       <HeaderCell style={{ minWidth: '110px', fontSize: '14px', fontWeight: 'bold' }}>LOT NUMBER</HeaderCell>
       {Object.keys(dataset.length > 0 ? dataset[0]['data'] : {}).map((key) => {
         if (!inactiveColumns.includes(key)) {
           return (
-            <HeaderCell key={key} style={{ minWidth: `200px`, fontSize: '14px', backgroundColor: '#DEEFF5' }}>
+            <HeaderCell key={key} style={{ minWidth: `200px`, width: `200px`, fontSize: '14px', backgroundColor: '#DEEFF5' }}>
               <p style={{ margin: '0px', display: 'inline', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', }}>{key}</p>
-              <div style={{ display: 'inline', float: 'right' }}>
+              {/* <div style={{ display: 'inline', float: 'right' }}>
                 <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={true} />
-              </div>
+              </div> */}
             </HeaderCell>
           );
         }
         return null; // Return null if condition is not met to avoid rendering anything
       })}
       {inactiveColumns.map((key) => (
-        <HeaderCell key={key} style={{ minWidth: `200px`, fontSize: '14px', backgroundColor: 'lightgray' }}>
+        <HeaderCell key={key} style={{ minWidth: `200px`, width: `200px`, fontSize: '14px', backgroundColor: 'lightgray' }}>
           <p style={{ margin: '0px', display: 'inline', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', }}>{key}</p>
-          <div style={{ display: 'inline', float: 'right' }}>
+          {/* <div style={{ display: 'inline', float: 'right' }}>
             <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={false} />
-          </div>
+          </div> */}
         </HeaderCell>
       ))}
     </Row>
@@ -148,6 +148,7 @@ const Upload = () => {
             <DataCell 
               style={{ 
                 minWidth: `200px`, 
+                width: `200px`,
                 backgroundColor: row['flagged_columns']['flagged columns'].includes(key) ? 'rgba(255, 0, 0, 0.4)' : 'white',
               }}
             >
@@ -159,7 +160,8 @@ const Upload = () => {
       {inactiveColumns.map((key) => (
         <DataCell 
             style={{ 
-              minWidth: `200px`, 
+              minWidth: `200px`,
+              width: `200px`,
               backgroundColor: row['flagged_columns']['flagged columns'].includes(key) ? 'rgba(255, 0, 0, 0.4)' : 'lightgray',
             }}
           >
@@ -204,7 +206,7 @@ const Upload = () => {
       {Object.keys(dataset.length > 0 ? dataset[0]['data'] : {}).map((key) => {
         if (!inactiveColumns.includes(key)) {
           return (
-            <HeaderCell key={key} style={{ minWidth: `200px`, fontSize: '14px', backgroundColor: '#DEEFF5' }}>
+            <HeaderCell key={key} style={{ fontSize: '14px', backgroundColor: '#DEEFF5' }}>
               <p style={{ margin: '0px', display: 'inline', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', }}>{key}</p>
               <div style={{ display: 'inline', float: 'right' }}>
                 <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={true} />
@@ -215,7 +217,7 @@ const Upload = () => {
         return null; // Return null if condition is not met to avoid rendering anything
       })}
       {inactiveColumns.map((key) => (
-        <HeaderCell key={key} style={{ minWidth: `200px`, fontSize: '14px', backgroundColor: 'lightgray' }}>
+        <HeaderCell key={key} style={{ fontSize: '14px', backgroundColor: 'lightgray' }}>
           <p style={{ margin: '0px', display: 'inline', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', }}>{key}</p>
           <div style={{ display: 'inline', float: 'right' }}>
             <Switch onChange={(event) => handleHeaderCheck(event, key)} size='medium' checked={false} />
@@ -225,7 +227,7 @@ const Upload = () => {
     </div>
     <div style={{ paddingLeft: '2%', paddingTop: '2%', width: '65%' }}>
       <div style={{ display: 'flex', paddingRight: '3%' }}>
-        <h1 style={{ margin: '0px' }}>{selectedDataset}</h1>
+        <h1 style={{ margin: '0px' }}>Batch Raw Data</h1>
         
         {changesMade && (
           <div className="save-btn" style={{ marginLeft: '40px' }} onClick={() => onSaveClick()}>
@@ -240,9 +242,22 @@ const Upload = () => {
         </div>
       </div>
 
-      <div style={{ height: '90%', width: '100%', overflowY: 'auto', overflowX: 'auto', marginTop: '20px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
-        {renderHeaders()}
-        {renderRows()}
+      <div style={{ height: '90%', width: '100%', overflow: 'hidden', marginTop: '20px', border: '0.1px solid #ddd', borderRadius: '0px' }}>
+        {/* Scrollable area for both headers and rows */}
+        <div style={{ width: '100%', overflowX: 'auto', overflowY: 'auto', height: '100%' }}>
+          {/* Container to hold headers and rows */}
+          <div style={{ minWidth: 'max-content' }}>
+            {/* Header Row */}
+            <div style={{ display: 'flex', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
+              {renderHeaders()}
+            </div>
+
+            {/* Rows */}
+            <div>
+              {renderRows()}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     </>

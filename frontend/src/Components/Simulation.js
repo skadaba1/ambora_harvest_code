@@ -2,6 +2,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
 import ScheduleChart from './ScheduleChart';
 import React, { useState, useRef, useEffect } from 'react';
+import './Simulation.css';
 
 Chart.register(...registerables);
 
@@ -13,8 +14,9 @@ const Simulation = () => {
   const [scheduleData, setScheduleData] = useState({});
   const [dayToNumCTSAvailable, setDayToNumCTSAvailable] = useState({0: 5, 1: 5, 2: 11, 3: 11, 4: 11, 5: 6, 6: 6})
   const [chartData, setChartData] = useState([]);
-  const numberOfDaysRef = useRef(null);
+  const [optimizeFor, setOptimizeFor] = useState('CTS');
   
+  const numberOfDaysRef = useRef(null);
   const startDateRef = useRef(new Date())
   const sunRef = useRef(null)
   const monRef = useRef(null)
@@ -22,7 +24,8 @@ const Simulation = () => {
   const wedRef = useRef(null)
   const thurRef = useRef(null)
   const friRef = useRef(null)
-  const satRef = useRef(null) 
+  const satRef = useRef(null)
+  const numBatchesRef = useRef(null) 
   
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   const formatDate = (date) => {
@@ -126,16 +129,25 @@ const Simulation = () => {
       6: satRef.current.value
     })
 
-    changeChartsInfo({
-      0: sunRef.current.value, 
-      1: monRef.current.value, 
-      2: tueRef.current.value, 
-      3: wedRef.current.value, 
-      4: thurRef.current.value, 
-      5: friRef.current.value, 
-      6: satRef.current.value
-    })
+    if (optimizeFor === 'Batches') {
+      changeChartsInfo({
+        0: sunRef.current.value, 
+        1: monRef.current.value, 
+        2: tueRef.current.value, 
+        3: wedRef.current.value, 
+        4: thurRef.current.value, 
+        5: friRef.current.value, 
+        6: satRef.current.value
+      })
+    } else {
+      // optimizeForBatches()
+    }
   };
+
+  const optimizeForBatches = () => {
+    console.log('optimizeForBatches')
+    console.log(numBatchesRef.current.value)
+  }
 
   const changeChartsInfo = (dayToNumCTSAvailable) => {
     const date = new Date()
@@ -178,9 +190,6 @@ const Simulation = () => {
       }
     }
 
-    console.log(data)
-    console.log(newScheduleData)
-
     setData((prevData) => ({
       ...prevData,
       labels: allDates,
@@ -208,7 +217,7 @@ const Simulation = () => {
         <h1 style={{ marginBottom: '0px', marginTop: '40px' }}>CTS Distribution</h1>
         <Bar data={data} options={options} style={{width: '80%' }}/>
       </div>
-      <div style={{ background: 'lightgray', padding: '20px', flex: '1' }}>
+      <div style={{ background: '#f5f5f5', padding: '20px', flex: '1', borderLeft: '1px solid #ccc' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: '0px' }}>Variables</h2>
           <button className='run-button' onClick={onRunPress}>Run</button>
@@ -221,10 +230,10 @@ const Simulation = () => {
           <label style={{ fontWeight: 'bold' }}>Number of Days</label>
           <input className='setting-input' type="number" ref={numberOfDaysRef}/>
         </div>
-        <div style={{ marginTop: '10px' }}>
+        {/* <div style={{ marginTop: '10px' }}>
           <label style={{ fontWeight: 'bold' }}>Buffer</label>
           <input className='setting-input' type="number" />
-        </div>
+        </div> */}
         <div style={{ marginTop: "20px" }}>
           <label style={{ fontWeight: 'bold' }}> CTSs Available per Day </label>
           <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
@@ -256,6 +265,21 @@ const Simulation = () => {
             <input className = "day-input" type="number" ref={satRef} />
           </div>
         </div>
+        <p style={{ marginTop: '30px', fontWeight: 'bold' }}>Optimize For:</p>
+        <div style={{ display: 'flex', marginTop: '10px', justifyContent: 'space-around', alignItems: 'center' }}>
+          <p onClick={() => setOptimizeFor('CTS')} className={optimizeFor === 'CTS' ? 'optimize-select-active' : 'optimize-select'} style={{ margin: '0px' }}>CTS</p>
+          <p onClick={() => setOptimizeFor('Batches')} className={optimizeFor === 'Batches' ? 'optimize-select-active' : 'optimize-select'} style={{ margin: '0px' }}>Batches</p>
+        </div>
+        { optimizeFor === 'Batches' ? (
+          <></>
+        ) : (
+          <div style={{ marginTop: "30px" }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <label style={{ marginRight: '10px' }}>Number of Batches</label>
+              <input className = "day-input" type="number" ref={numBatchesRef}/>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

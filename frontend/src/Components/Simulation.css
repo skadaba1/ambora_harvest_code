@@ -1,0 +1,16 @@
+.optimize-select-active {
+  padding: 5px;
+  border-radius: 5px;
+  background-color: black;
+  color: white;
+}
+
+.optimize-select {
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.optimize-select:hover {
+  background-color: lightgray;
+}

@@ -18,7 +18,7 @@ const Sidebar = ({ setAppView }) => {
       </a>
       <a className='side-btn' onClick={() => setAppView('upload')}>
         <FontAwesomeIcon icon={faLayerGroup} style={{ marginRight: '20px' }} />
-        Datasets
+        Dataset
       </a>
       <a className='side-btn' style={{ }} onClick={() => setAppView('simulation')}>
         <FontAwesomeIcon icon={faAtom} style={{ marginRight: '20px' }} />
