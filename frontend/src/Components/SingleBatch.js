@@ -17,6 +17,7 @@ import 'chartjs-adapter-date-fns'; // Import the date adapter
 import React, { useEffect, useState, useRef } from 'react';
 import { REACT_APP_API_URL } from "../consts";
 import './SingleBatch.css';
+import HarvestDay from './HarvestDay';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
 
@@ -227,6 +228,9 @@ const SingleBatch = ({ setBatchesView, batchesView, getMeasurements, getBatches,
               <Scatter data={chartDataB} options={options2} width={100} height={50}/>
             </div>
           )}
+        <div> 
+            <HarvestDay predictions={chartDataA}/>
+        </div>
           <div style={{ position : "relative", width: '100%', overflowX: 'auto', border: '1px solid lightgray', borderRadius: '5px', marginTop: '20px' }}>
             <div style={{ 
               display: 'flex', 

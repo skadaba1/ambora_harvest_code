@@ -161,12 +161,11 @@ const Batches = () => {
           lotId: batchId
         }),
       });
-
+      handleMeasurementClick(batchId, 0);
       if (response.status === 200) {
         const result = await response.json();
         result.sort((a, b) => new Date(b.measurement_date) - new Date(a.measurement_date));
         setMeasurements(result);
-        handleMeasurementClick(batchId, result[0].id);
       } else {
         const errorData = await response.json();
         console.error('Error fetching measurements:', errorData.error);

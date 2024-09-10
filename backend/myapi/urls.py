@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Batches, add_batch, delete_batch, add_measurement, get_measurements, upload_process_file, delete_all_batches, sim_growth, update_batch_status, update_inactive_columns, get_inactive_columns, get_measurement_data, get_phenotyping_data_for_batch, fit_spa_model, check_if_process_day_required
+from .views import Batches, add_batch, delete_batch, add_measurement, get_measurements, upload_process_file, delete_all_batches, sim_growth, update_batch_status, update_inactive_columns, get_inactive_columns, get_measurement_data, get_phenotyping_data_for_batch, fit_spa_model, check_if_process_day_required, predict_harvest_day
 
 urlpatterns = [
     path('batches/', Batches, name='batches'),
@@ -17,4 +17,5 @@ urlpatterns = [
     path('fit-spa-model/', fit_spa_model, name='fit-spa-model'),
     path("get-phenotyping-data-for-batch/", get_phenotyping_data_for_batch, name = "get-phenotyping-data-for-batch"),
     path("check-if-process-day-required/", check_if_process_day_required, name = "check-if-process-day-required"),
+    path("predict-harvest-day/", predict_harvest_day, name = "predict-harvest-day"),
 ]

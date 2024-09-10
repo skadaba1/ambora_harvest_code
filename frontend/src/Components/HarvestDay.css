@@ -1,0 +1,49 @@
+.harvest-container {
+    margin-top: 20px;
+    background-color: white;
+    border: 2px solid white;
+    border-radius: 8px;
+    width: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.harvest-title {
+    padding: 5px;
+    font-size: 0.5em;
+    color: black;
+}
+
+.harvest-day {
+    padding: 10px;
+    margin-left: auto;
+    font-size: 1.5em;
+    color: black;
+    font-weight: bold;
+}
+
+.harvest-input {
+    margin: 0px 5px 5px 5px;
+    font-size: 1.0em;
+    border: 2px solid white;
+    border-radius: 5px;
+    width: 90%;
+}
+
+.harvest-button {
+    font-size: 0.5em;
+    background-color: white;
+    color: black;
+    border: 2px solid gray;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.harvest-button:disabled {
+    background-color: white;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.25em;
+}

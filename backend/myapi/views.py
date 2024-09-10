@@ -505,4 +505,16 @@ def fit_spa_model(request):
     output = DI.log(x, y, feature_names)
     return Response({'data': output})
 
+@api_view(['POST'])
+def predict_harvest_day(request):
+    data = request.data
+    harvest_criteria = data['harvest_criteria']
+    predictions = data['predictions']
+    for entry in predictions:
+        hours_since_day_0 = entry['x']
+        tvc = entry['y']
+        print(tvc, int(harvest_criteria))
+        if(tvc > int(harvest_criteria)):
+            return Response({'harvest_day': str(hours_since_day_0 // 24)})
+    return Response({'harvest_day': 'N/A'})
 # inference_for_lot('31424025')
