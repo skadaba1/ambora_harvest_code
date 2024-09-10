@@ -4,7 +4,7 @@ import './HarvestDay.css';
 
 const HarvestDay = ({predictions}) => {
     const [harvestCriteria, setHarvestCriteria] = useState(1000000000); // State for the input
-    const [predictedHarvestDay, setPredictedHarvestDay] = useState('8');
+    const [predictedHarvestDay, setPredictedHarvestDay] = useState('N/A');
 
 
     // Function to handle input change
