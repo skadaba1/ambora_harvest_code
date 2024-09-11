@@ -33,7 +33,8 @@ const options = {
       title: {
         display: true,
         text: 'Total Viable Cells (Billions)'
-      }
+      },
+      max: 5000000000,
     }
   }
 };
@@ -50,7 +51,8 @@ const options2 = {
       title: {
         display: true,
         text: 'Viable Cell Density (%)'
-      }
+      }, 
+      max: 5000000000,
     }
   }
 };
