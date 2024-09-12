@@ -1,6 +1,0 @@
-*.pyc
-chroma/
-uploads/
-db.sqlite3
-backend/myapi/__pycache__/
-backend/backend/__pycache__/
